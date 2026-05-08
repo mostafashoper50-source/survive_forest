@@ -1,0 +1,2103 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<title>Final Survival Game</title>
+<style>
+  /* المؤثرات البصرية - VFX */
+#vfxOverlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9998;
+    transition: background 0.3s;
+}
+
+/* تأثير النزيف (أحمر) */
+body.vfx-bleeding #vfxOverlay {
+    background: radial-gradient(circle, transparent 50%, rgba(180,0,0,0.4) 100%);
+    animation: vfxPulse 0.8s infinite alternate;
+}
+
+/* تأثير التسمم (أخضر) */
+body.vfx-poison #vfxOverlay {
+    background: radial-gradient(circle, transparent 50%, rgba(0,180,0,0.4) 100%);
+    animation: vfxPulse 1.2s infinite alternate;
+}
+
+/* تأثير الحرق (برتقالي) */
+body.vfx-burning #vfxOverlay {
+    background: radial-gradient(circle, transparent 50%, rgba(255,80,0,0.4) 100%);
+    animation: vfxPulse 0.5s infinite alternate;
+}
+
+@keyframes vfxPulse {
+    from { opacity: 0.5; }
+    to { opacity: 1; }
+}
+/* ══ 1. إعدادات الصفحة والخلفية الثابتة ══ */
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden; /* منع التمرير نهائياً */
+    background: radial-gradient(circle, #0b3d0b, #000) !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #cfffcc;
+    font-family: Arial, sans-serif;
+    position: fixed; /* منع اهتزاز المتصفح */
+    touch-action: none; /* تعطيل إيماءات المتصفح الافتراضية */
+}
+
+/* ══ 2. منطقة اللعبة (الماب) ══ */
+#game {
+    display: grid;
+    gap: 0;
+    background: #021;
+    padding: 4px;
+    border: 2px solid lime;
+    overflow: hidden;
+    max-width: 95vw;
+    max-height: 60vh; /* ترك مساحة للأزرار والمعلومات */
+    box-sizing: border-box;
+    z-index: 5;
+}
+
+.cell {
+    width: 14px;
+    height: 14px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 10px;
+    box-shadow: inset 0 0 0 0.3px rgba(0,0,0,0.1);
+    line-height: 1;
+}
+
+/* ══ 3. القائمة الجانبية (HUD) ══ */
+#hud {
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 210px;
+    height: 100vh;
+    background: rgba(0,0,0,0.85);
+    padding: 15px;
+    border-left: 2px solid #0f0;
+    font-size: 13px;
+    box-sizing: border-box;
+    z-index: 100;
+    overflow-y: auto;
+}
+
+.bar-wrap {
+    background: #111;
+    border-radius: 4px;
+    height: 10px;
+    margin-bottom: 8px;
+    overflow: hidden;
+}
+
+.bar {
+    height: 10px;
+    background: lime;
+    transition: width 0.3s;
+}
+
+/* ══ 4. أزرار التحكم (للموبايل) ══ */
+#mobile-controls {
+    display: none; /* تختفي في الكمبيوتر */
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-top: 15px;
+    user-select: none;
+    z-index: 110;
+}
+
+.row { display: flex; gap: 15px; }
+
+.ctrl-btn {
+    width: 60px;
+    height: 60px;
+    background: rgba(0, 255, 0, 0.15);
+    border: 2px solid lime;
+    color: lime;
+    border-radius: 50%;
+    font-size: 22px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    touch-action: manipulation;
+}
+
+.ctrl-btn:active {
+    background: lime;
+    color: #000;
+}
+
+/* ══ 5. شاشات التنبيه والنهاية ══ */
+.game-alert {
+    position: fixed;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+.game-alert.show { opacity: 1; }
+
+#gameOverScreen {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.9);
+    z-index: 99999;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+#gameOverScreen.show { display: flex; }
+
+/* ══ 6. التجاوب مع الهاتف (Responsive) ══ */
+@media (max-width: 768px) {
+    #hud {
+        position: relative; /* ينزل تحت الماب */
+        width: 95vw;
+        height: auto;
+        border-left: none;
+        border-top: 2px solid #0f0;
+        margin-top: 10px;
+        order: 2; /* الترتيب الثاني */
+    }
+
+    #game {
+        max-height: 45vh;
+        order: 1; /* الماب أولاً */
+    }
+
+    #mobile-controls {
+        display: flex;
+        order: 3; /* الأزرار في الأسفل */
+        margin-bottom: 10px;
+    }
+
+    .cell {
+        width: 11px;
+        height: 11px;
+    }
+}
+
+/* ══ 7. المؤثرات البصرية ══ */
+#vfxOverlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9998;
+}
+
+/* أنيميشن النبض للخسارة */
+@keyframes pulse {
+    from { text-shadow: 0 0 20px #f00; }
+    to { text-shadow: 0 0 50px #f00, 0 0 80px #f44; }
+}
+
+</style>
+</head>
+<body>
+
+<div id="game"></div>
+<!-- أزرار التحكم للهاتف -->
+<div id="mobile-controls">
+    <div class="row"><button class="ctrl-btn" id="btn-up"><i class="fas fa-chevron-up"></i></button></div>
+    <div class="row">
+        <button class="ctrl-btn" id="btn-left"><i class="fas fa-chevron-left"></i></button>
+        <button class="ctrl-btn" id="btn-down"><i class="fas fa-chevron-down"></i></button>
+        <button class="ctrl-btn" id="btn-right"><i class="fas fa-chevron-right"></i></button>
+    </div>
+</div>
+<div id="vfxOverlay"></div>
+
+<div id="hud">
+  <div style="margin-bottom:4px">🏆 Level: <span id="level"></span></div>
+  <div>❤️ HP</div>
+  <div class="bar-wrap"><div class="bar" id="hpBar"></div></div>
+  <div id="effectsHud" style="min-height:30px;margin-bottom:6px"></div>
+  <hr style="border-color:#0f04;margin:4px 0">
+
+  <div id="itemsHud"></div>
+</div>
+
+<div id="gameOverScreen">
+  <h1>💀 GAME OVER</h1>
+  <p id="gameOverReason"></p>
+  <button id="retryBtn">🔄 RETRY</button>
+</div>
+
+<div id="gameAlert" class="game-alert">
+  <div class="alert-box">
+    <h2 id="alertTitle"></h2>
+    <p id="alertText"></p>
+  </div>
+</div>
+
+<script>
+const W=60, H=120, VIEW_W=60, VIEW_H=36;
+
+const game        = document.getElementById("game");
+const levelEl     = document.getElementById("level");
+const hpBar       = document.getElementById("hpBar");
+const itemsHud    = document.getElementById("itemsHud");
+
+const effectsHudEl= document.getElementById("effectsHud");
+
+/* 🖼️ صور الوحوش - حط الـ src هنا */
+const monsterImgs={
+  normal: "",   /* مثال: "./images/monster_normal.png" */
+  fire:   "./IMAGES/9e78383488055714c4d2581476472990.JPG",   /* مثال: "./images/monster_fire.png"   */
+  ice:    "./IMAGES/3f2375a8e947bf2d2a32eb394b74a094.JPG",   /* مثال: "./images/monster_ice.png"    */
+};
+
+let world=[], player={x:1,y:1}, monsters=[];
+let stage=1, hp=100, vision=5;
+let shield=false, paused=false;
+let hitCooldown=false, levelCleared=false;
+
+/* ══ EFFECTS ══ */
+let activeEffects={};
+
+let stepSize=1, magicShieldActive=false, magnetActive=false, strengthActive=false;
+let speedLevel=0;          /* 0=لا يوجد, 1=I, 2=II, 3=III */
+let speedStepsLeft=0;      /* الخطوات المتبقية في الـ hold الحالي */
+let speedHoldActive=false; /* هل زر الحركة مضغوط الآن */
+let onLava=false;
+let bleedLevel=0, bleedInterval=null, bleedHitCount=0;
+let poisonLevel=0, poisonHitCount=0;
+let frostLevel=0, frostHitCount=0, frostInterval=null;
+let burnLevel=0; /* هل اللاعب على الـ Lava الآن */
+let lavaImmune=false, ghostMode=false, luckyMode=false;
+let invincibleMode=false, weaknessActive=false;
+let poisonInterval=null, burningInterval=null, freezeMonsters=false;
+
+const EFFECT_DEFS={
+  freeze:{
+    emoji:"🧊",label:"Freeze",good:true,
+    apply:()=>{ freezeMonsters=true; },
+    remove:()=>{ freezeMonsters=false; }
+  },
+  burning:{
+    emoji:"🔥",label:"Burning",good:false,
+    apply:()=>{},
+    remove:()=>{ clearInterval(burningInterval); burningInterval=null; }
+  },
+  speed:{
+    emoji:"⚡",label:"Speed",good:true,
+    apply:()=>{ speedHoldActive=false; },
+    remove:()=>{ speedLevel=0; speedStepsLeft=0; stepSize=1; }
+  },
+  magicShield:{
+    emoji:"🔮",label:"Magic Shield",good:true,
+    apply:()=>{ magicShieldActive=true; },
+    remove:()=>{ magicShieldActive=false; }
+  },
+  magnet:{
+    emoji:"🧲",label:"Magnet",good:true,
+    apply:()=>{ magnetActive=true; },
+    remove:()=>{ magnetActive=false; }
+  },
+  reveal:{
+    emoji:"🗺️",label:"Reveal",good:true,
+    apply:()=>{ vision=99; },
+    remove:()=>{ vision=5; }
+  },
+  lavaImmunity:{
+    emoji:"🌋",label:"Lava Immunity",good:true,
+    apply:()=>{ lavaImmune=true; },
+    remove:()=>{ lavaImmune=false; }
+  },
+  ghost:{
+    emoji:"👻",label:"Ghost",good:true,
+    apply:()=>{ ghostMode=true; },
+    remove:()=>{ ghostMode=false; }
+  },
+  lucky:{
+    emoji:"⭐",label:"Lucky",good:true,
+    apply:()=>{ luckyMode=true; },
+    remove:()=>{ luckyMode=false; }
+  },
+  invincible:{
+    emoji:"💫",label:"Invincible",good:true,
+    apply:()=>{ invincibleMode=true; },
+    remove:()=>{ invincibleMode=false; }
+  },
+  weakness:{
+    emoji:"💀",label:"Weakness",good:false,
+    apply:()=>{ weaknessActive=true; },
+    remove:()=>{ weaknessActive=false; }
+  },
+  shield:{
+    emoji:"🛡️",label:"Shield",good:true,
+    apply:()=>{ shield=true; },
+    remove:()=>{ shield=false; }
+  },
+  strength:{
+    emoji:"💪",label:"Strength",good:true,
+    apply:()=>{ strengthActive=true; },
+    remove:()=>{ strengthActive=false; }
+  },
+  blind:{
+    emoji:"🌫️",label:"Blind",good:false,
+    apply:()=>{ vision=2; },
+    remove:()=>{ vision=5; }
+  },
+  frost:{
+    emoji:"❄️",label:"Frost",good:false,
+    apply:()=>{},
+    remove:()=>{ clearInterval(frostInterval); frostInterval=null; frostLevel=0; frostHitCount=0; }
+  },
+  bleeding:{
+    emoji:"🩸",label:"Bleeding",good:false,
+    apply:()=>{},
+    remove:()=>{ clearInterval(bleedInterval); bleedInterval=null; bleedLevel=0; bleedHitCount=0; }
+  },
+  poison:{
+    emoji:"☠️",label:"Poison",good:false,
+    apply:()=>{},
+    remove:()=>{ clearInterval(poisonInterval); poisonInterval=null; poisonLevel=0; poisonHitCount=0; }
+  }
+};
+
+const QUESTION_EFFECTS=["weakness","magicShield","blind","magnet","reveal","lavaImmunity","ghost","lucky","invincible"];
+
+function applyEffect(name){
+  const def=EFFECT_DEFS[name];
+  if(!def) return;
+  if(activeEffects[name]){
+    clearTimeout(activeEffects[name].timer);
+    def.remove();
+  }
+  /* مدة حسب قوة التأثير */
+  const goodDurations={
+    freeze:7000, speed:8000, magicShield:10000, magnet:12000,
+    reveal:9000, lavaImmunity:15000, ghost:8000, lucky:10000,
+    invincible:7000, strength:10000, shield:8000
+  };
+  const badDurations={
+    weakness:10000, blind:5000, poison:8000, bleeding:10000, burning:7000
+  };
+  let duration = def.good
+    ? (goodDurations[name] || 7000)
+    : (badDurations[name]  || 5000);
+  def.apply();
+
+  /* التأثيرات تتحقق من paused في كل interval */
+  if(name==="poison"){
+    poisonHitCount++;
+    poisonLevel = poisonHitCount>=3?3:poisonHitCount>=2?2:1;
+    let pdps=getPoisonDPS(poisonLevel);
+    let pdur=getLevelDur(poisonLevel);
+    EFFECT_DEFS["poison"].label=`Poison ${getRoman(poisonLevel)}`;
+    clearInterval(poisonInterval);
+    if(activeEffects["poison"]) clearTimeout(activeEffects["poison"].timer);
+    poisonInterval=setInterval(()=>{
+      if(paused)return;
+      if(!activeEffects["poison"]){clearInterval(poisonInterval);poisonInterval=null;return;}
+      hp-=pdps;
+      ludki(`☠️ Poison ${getRoman(poisonLevel)}`,`−${pdps} HP/s`,"damage");
+      if(hp<=0) triggerDeath(`Poisoned ☠️ ${getRoman(poisonLevel)}`);
+      drawWorld();
+    },1000);
+    activeEffects[name]={
+      endTime:Date.now()+pdur,
+      timer:setTimeout(()=>{
+        EFFECT_DEFS["poison"].remove();
+        delete activeEffects["poison"];
+        drawHud();
+      },pdur)
+    };
+    ludki(`⚠️ Poison ${getRoman(poisonLevel)}`,"Watch out!","damage");
+    drawHud();
+    return;
+  }
+
+  if(name==="magnet"){
+    let mInt=setInterval(()=>{
+      if(!magnetActive){clearInterval(mInt);return;}
+      for(let dy=-3;dy<=3;dy++) for(let dx=-3;dx<=3;dx++){
+        let nx=player.x+dx,ny=player.y+dy;
+        if(nx<0||ny<0||nx>=W||ny>=H)continue;
+        let cell=world[ny][nx];
+        if(itemTarget[cell]){
+          world[ny][nx]="empty";
+          itemCollected[cell]=(itemCollected[cell]||0)+(luckyMode?2:1);
+        }
+      }
+    },500);
+  }
+
+  activeEffects[name]={
+    endTime:Date.now()+duration,
+    timer:setTimeout(()=>{
+      def.remove();
+      delete activeEffects[name];
+      drawHud();
+    },duration)
+  };
+
+  ludki((def.good?"✅ ":"⚠️ ")+def.label,def.good?"Active!":"Watch out!",def.good?"collect":"damage");
+  drawHud();
+}
+
+/* ══ SOUNDS ══ */
+const sounds={
+  start:   new Audio("./sounds/start.mp3"),
+  /* 🎵 BG tracks - يتم التبديل بينها عشوائياً */
+  bg1:     new Audio("./sounds/bg1.m4a"),
+  bg2:     new Audio("./sounds/bg2.m4a"),
+  bg3:     new Audio("./sounds/bg3.m4a"),
+  /* 🎵 موسيقى الوحش العادي */
+  normal_layer1: new Audio("./sounds/normal_layer1.m4a"),
+  normal_layer2: new Audio("./sounds/normal_layer2.m4a"),
+  normal_chase:  new Audio("./sounds/normal_chase.m4a"),
+  /* 🎵 موسيقى الوحش الناري */
+  fire_layer1:   new Audio("./sounds/fire_layer1.m4a"),
+  fire_layer2:   new Audio("./sounds/fire_layer2.m4a"),
+  fire_chase:    new Audio("./sounds/fire_chase.m4a"),
+  /* 🎵 موسيقى الوحش الجليدي */
+  ice_layer1:    new Audio("./sounds/ice_layer1.m4a"),
+  ice_layer2:    new Audio("./sounds/ice_layer2.m4a"),
+  ice_chase:     new Audio("./sounds/ice_chase.m4a"),
+  med:     new Audio("./sounds/drink_med.mp3"),
+  medkit:  new Audio("./sounds/using_medkit.mp3"),
+  gold:    new Audio("./sounds/collect_gold.mp3"),
+  diamond: new Audio("./sounds/collect_diamond.mp3"),
+  collect: new Audio("./sounds/collect.mp3"),
+  hit:     new Audio("./sounds/slash.mp3"),
+  level:   new Audio("./sounds/won.mp3"),
+  gameover:new Audio("./sounds/game_over.mp3"),
+  restart: new Audio("./sounds/restart.mp3"),
+  /* chase مدمج في موسيقى الوحوش أعلاه */
+  walk:    new Audio("./sounds/walk.mp3"),
+  burn:    new Audio("./sounds/burning.m4a"),
+  bleed:   new Audio("./sounds/bleeding.m4a"),
+  effect:  new Audio("./sounds/effect.m4a")
+};
+for(let s in sounds) sounds[s].volume=0.6;
+sounds.walk.volume=0.25;
+/* BG tracks loop */
+sounds.bg1.loop=true; sounds.bg1.volume=0.35;
+sounds.bg2.loop=true; sounds.bg2.volume=0.35;
+sounds.bg3.loop=true; sounds.bg3.volume=0.35;
+/* Monster music loops */
+const MONSTER_TRACKS=["normal_layer1","normal_layer2","normal_chase",
+                      "fire_layer1","fire_layer2","fire_chase",
+                      "ice_layer1","ice_layer2","ice_chase"];
+for(let t of MONSTER_TRACKS){ sounds[t].loop=true; sounds[t].volume=0.6; }
+
+/* 🎵 الأغاني: لا تشتغل اثنتان معاً */
+const BG_TRACKS=[sounds.bg1,sounds.bg2,sounds.bg3];
+const MONSTER_MUSIC={
+  normal:{layer1:sounds.normal_layer1, layer2:sounds.normal_layer2, chase:sounds.normal_chase},
+  fire:  {layer1:sounds.fire_layer1,   layer2:sounds.fire_layer2,   chase:sounds.fire_chase},
+  ice:   {layer1:sounds.ice_layer1,    layer2:sounds.ice_layer2,    chase:sounds.ice_chase}
+};
+const MUSIC=[sounds.bg1,sounds.bg2,sounds.bg3,
+             sounds.normal_layer1,sounds.normal_layer2,sounds.normal_chase,
+             sounds.fire_layer1,sounds.fire_layer2,sounds.fire_chase,
+             sounds.ice_layer1,sounds.ice_layer2,sounds.ice_chase];
+let currentBgTrack=sounds.bg1;
+let currentMonsterTrack=null;
+
+function stopAllMusic(){ for(let m of MUSIC){m.pause();m.currentTime=0;} }
+
+/* اختر BG عشوائي وشغله */
+function playRandomBg(){
+  stopAllMusic();
+  currentBgTrack=BG_TRACKS[Math.floor(Math.random()*BG_TRACKS.length)];
+  currentBgTrack.currentTime=0;
+  currentBgTrack.play().catch(()=>{});
+}
+
+/* شغل موسيقى الوحش حسب النوع والمسافة */
+function playMonsterMusic(type, dist){
+  let group=MONSTER_MUSIC[type]||MONSTER_MUSIC.normal;
+  let track;
+  if(dist>=8)       track=group.layer1;
+  else if(dist>=4)  track=group.layer2;
+  else              track=group.chase;
+
+  if(track!==currentMonsterTrack){
+    for(let m of MUSIC) if(m!==track){m.pause();m.currentTime=0;}
+    currentMonsterTrack=track;
+    track.play().catch(()=>{});
+  }
+}
+
+function playMusic(s){
+  if(!s)return;
+  for(let m of MUSIC){ if(m!==s){m.pause();m.currentTime=0;} }
+  if(s.paused) s.play().catch(()=>{});
+}
+function resumeBg(){ playMusic(currentBgTrack); }
+
+/* 🔊 SFX: يشتغل فوراً بـ clone بدون تأثير على الأغاني */
+function playSound(s){
+  if(!s)return;
+  try{
+    let c=s.cloneNode();
+    c.volume=s.volume;
+    c.play().catch(()=>{});
+  }catch(e){}
+}
+
+function playSoundOnce(s){
+  if(!s)return;
+  if(s.paused||s.ended){ s.currentTime=0; s.play().catch(()=>{}); }
+}
+
+function stopChase(){
+  for(let t of MONSTER_TRACKS){ sounds[t].pause(); sounds[t].currentTime=0; }
+  currentMonsterTrack=null;
+}
+
+let audioUnlocked=false;
+function unlockAudio(){
+  if(audioUnlocked)return; audioUnlocked=true;
+  for(let s in sounds){
+    sounds[s].muted=true;
+    sounds[s].play().then(()=>{ sounds[s].pause(); sounds[s].muted=false; sounds[s].currentTime=0; }).catch(()=>{});
+  }
+  setTimeout(()=>{ playSound(sounds.start); setTimeout(()=>playRandomBg(),1500); },100);
+}
+document.addEventListener("click",unlockAudio,{once:true});
+document.addEventListener("keydown",unlockAudio,{once:true});
+
+/* ══ ALERT ══ */
+let alertTimer;
+function ludki(title,text,type="normal"){
+  document.getElementById("alertTitle").textContent=title;
+  document.getElementById("alertText").textContent=text;
+  const box=document.getElementById("gameAlert");
+  box.classList.add("show");
+  clearTimeout(alertTimer);
+  if(type==="pause")return;
+  let time=300;
+  if(type==="level"||type==="gameover") time=1200;
+  alertTimer=setTimeout(()=>box.classList.remove("show"),time);
+}
+
+/* ══ ITEMS ══ */
+const itemEmoji={
+  gold:"💰",copper:"🟤",silver:"⚪",diamond:"💎",
+  iron:"⛓️",obsidian:"🟣",med:"🧪",medkit:"🧰",
+  energy:"🥤",question:"❓",freeze:"🧊",poison_item:"☠️",bandage:"🩹"
+};
+const itemName={
+  gold:"Gold",copper:"Copper",silver:"Silver",
+  diamond:"Diamond",iron:"Iron",obsidian:"Obsidian"
+};
+let itemTarget={},itemCollected={};
+
+/* ══ WORLD ══ */
+function floodFill(wx,wy){
+  let visited=new Set(),queue=[[wx,wy]];
+  visited.add(wy*W+wx);
+  while(queue.length){
+    let[cx,cy]=queue.shift();
+    for(let[dx,dy] of[[1,0],[-1,0],[0,1],[0,-1]]){
+      let nx=cx+dx,ny=cy+dy;
+      if(nx>=0&&ny>=0&&nx<W&&ny<H&&!visited.has(ny*W+nx)&&world[ny][nx]!=="tree"){
+        visited.add(ny*W+nx); queue.push([nx,ny]);
+      }
+    }
+  }
+  return visited;
+}
+
+function resetEffects(){
+  for(let name in activeEffects){
+    clearTimeout(activeEffects[name].timer);
+    if(EFFECT_DEFS[name]) EFFECT_DEFS[name].remove();
+  }
+  activeEffects={};
+  stepSize=1; magicShieldActive=false; magnetActive=false;
+  lavaImmune=false; ghostMode=false; luckyMode=false;
+  invincibleMode=false; weaknessActive=false;
+  clearInterval(poisonInterval); poisonInterval=null;
+  clearInterval(burningInterval); burningInterval=null;
+  freezeMonsters=false; vision=5;
+}
+
+function createWorld(){
+  let attempts=0;
+  while(true){
+    attempts++;
+    world=[];
+    for(let y=0;y<H;y++){
+      let row=[];
+      for(let x=0;x<W;x++) row.push(Math.random()<0.18?"tree":"empty");
+      world.push(row);
+    }
+    world[1][1]="empty"; world[H-2][W-2]="empty";
+    let reachable=floodFill(1,1);
+    let totalEmpty=0;
+    for(let y=0;y<H;y++) for(let x=0;x<W;x++) if(world[y][x]!=="tree") totalEmpty++;
+    if(reachable.size>=totalEmpty*0.85){
+      for(let y=0;y<H;y++) for(let x=0;x<W;x++)
+        if(world[y][x]!=="tree"&&!reachable.has(y*W+x)) world[y][x]="tree";
+      break;
+    }
+    if(attempts>10){
+      for(let y=0;y<H;y++) for(let x=0;x<W;x++) if(world[y][x]==="tree"&&Math.random()<0.4) world[y][x]="empty";
+      break;
+    }
+  }
+  player={x:1,y:1};
+  resetEffects();
+}
+
+function getReachableCells(){
+  let cells=[];
+  floodFill(player.x,player.y).forEach(id=>{
+    let x=id%W,y=Math.floor(id/W);
+    if(world[y][x]==="empty") cells.push({x,y});
+  });
+  return cells;
+}
+
+function randomEmptyCell(cells){
+  for(let i=0;i<200;i++){
+    let c=cells[Math.floor(Math.random()*cells.length)];
+    if(c&&world[c.y][c.x]==="empty") return c;
+  }
+  return null;
+}
+
+function spawnMonsters(){
+  let cells=getReachableCells();
+  monsters=[];
+
+  /* حدد أنواع الوحوش حسب المستوى */
+  let types=["normal"];
+  if(stage>=3) types.push("fire");   /* الناري يظهر من Level 3 */
+  if(stage>=6) types.push("ice");    /* الجليدي يظهر من Level 6 */
+
+  for(let type of types){
+    let best=null, bestDist=0;
+    for(let i=0;i<50;i++){
+      let cell=cells[Math.floor(Math.random()*cells.length)];
+      if(!cell) continue;
+      let d=Math.abs(cell.x-player.x)+Math.abs(cell.y-player.y);
+      let farFromOthers=monsters.every(m=>Math.abs(m.x-cell.x)+Math.abs(m.y-cell.y)>10);
+      if(d>20&&farFromOthers){bestDist=d;best=cell;}
+    }
+    if(best) monsters.push({x:best.x,y:best.y,type,cd1:0,cd2:0});
+  }
+  if(monsters.length===0) monsters=[{x:W-2,y:H-2,type:"normal",cd1:0,cd2:0}];
+}
+
+function placeItems(){
+  itemTarget={}; itemCollected={};
+  let cells=getReachableCells();
+
+  let all=["gold","copper","silver","diamond","iron","obsidian"];
+  let active=all.sort(()=>Math.random()-0.5).slice(0,4);
+  if(!active.includes("gold")) active[0]="gold";
+
+  active.forEach(type=>{
+    let count=type==="gold"
+      ?Math.floor(Math.random()*16)+10
+      :Math.floor(Math.random()*9)+2;
+    itemTarget[type]=count; itemCollected[type]=0;
+    let placed=0;
+    while(placed<count){let c=randomEmptyCell(cells);if(!c)break;world[c.y][c.x]=type;placed++;}
+  });
+
+  for(let i=0;i<10;i++){let c=randomEmptyCell(cells);if(c)world[c.y][c.x]="med";}
+  for(let i=0;i<3;i++) {let c=randomEmptyCell(cells);if(c)world[c.y][c.x]="medkit";}
+  for(let i=0;i<8;i++) {let c=randomEmptyCell(cells);if(c)world[c.y][c.x]="energy";}
+  for(let i=0;i<5;i++) {let c=randomEmptyCell(cells);if(c)world[c.y][c.x]="question";}
+  for(let i=0;i<5;i++) {let c=randomEmptyCell(cells);if(c)world[c.y][c.x]="freeze";}
+  for(let i=0;i<6;i++) {let c=randomEmptyCell(cells);if(c)world[c.y][c.x]="poison_item";}
+  for(let i=0;i<8;i++) {let c=randomEmptyCell(cells);if(c)world[c.y][c.x]="bandage";}
+
+  if(active.includes("obsidian")){
+    for(let y=0;y<H;y++) for(let x=0;x<W;x++){
+      if(world[y][x]==="obsidian"){
+        let nb=[[x+1,y],[x-1,y],[x,y+1],[x,y-1],[x+1,y+1],[x-1,y-1],[x+1,y-1],[x-1,y+1]];
+        for(let[nx,ny] of nb)
+          if(nx>=0&&ny>=0&&nx<W&&ny<H&&world[ny][nx]==="empty"&&Math.random()<0.6)
+            world[ny][nx]="lava";
+      }
+    }
+  }
+}
+
+/* ══ CAMERA ══ */
+function getCamera(){
+  let cx=Math.max(0,Math.min(W-VIEW_W,Math.floor(player.x-VIEW_W/2)));
+  let cy=Math.max(0,Math.min(H-VIEW_H,Math.floor(player.y-VIEW_H/2)));
+  return{cx,cy};
+}
+
+/* ══ HUD ══ */
+function drawHud(){
+  let now=Date.now(), lines=[];
+  for(let name in activeEffects){
+    let def=EFFECT_DEFS[name];
+    if(!def)continue;
+    let remaining=Math.max(0,Math.ceil((activeEffects[name].endTime-now)/1000));
+    let color=def.good?"#0f0":"#f44";
+    lines.push(`<div style="color:${color};margin:2px 0">${def.emoji} ${def.label} — ${remaining}s</div>`);
+  }
+  let lavaIndicator = onLava ? `<div style="color:#f60;font-size:10px;margin-bottom:2px">🌋 أنت على الـ Lava!</div>` : "";
+  effectsHudEl.innerHTML=lines.length
+    ?lavaIndicator+`<div style="color:#aaa;font-size:10px;margin-bottom:2px">⚗️ Effects:</div>`+lines.join("")
+    :lavaIndicator+`<div style="color:#444;font-size:10px">⚗️ لا يوجد تأثير</div>`;
+}
+setInterval(drawHud,500);
+
+/* ══ DRAW ══ */
+function drawWorld(){
+  game.innerHTML="";
+  game.style.gridTemplateColumns=`repeat(${VIEW_W},14px)`;
+  const{cx,cy}=getCamera();
+
+  for(let row=0;row<VIEW_H;row++){
+    for(let col=0;col<VIEW_W;col++){
+      let x=cx+col,y=cy+row;
+      let div=document.createElement("div");
+      div.classList.add("cell");
+      let visible=Math.sqrt((player.x-x)**2+(player.y-y)**2)<=vision;
+
+      if(visible){
+        let cell=world[y][x];
+        if(cell==="lava")        {div.style.background="rgb(180,40,0)";div.style.boxShadow="inset 0 0 4px rgba(255,100,0,0.8)";}
+        else if(cell==="freeze") {div.style.background="rgb(0,80,160)";}
+        else if(cell==="poison_item"){div.style.background="rgb(40,80,20)";}
+        else                     {div.style.background="rgb(36,129,36)";}
+
+        if(player.x===x&&player.y===y)     div.textContent="🧍";
+        else if(cell==="tree")              div.textContent="🌲";
+        else if(cell==="lava")              div.textContent="🔥";
+        else if(cell==="med")               div.textContent="🧪";
+        else if(cell==="medkit")            div.textContent="🧰";
+        else if(cell==="energy")            div.textContent="🥤";
+        else if(cell==="question")          div.textContent="❓";
+        else if(cell==="freeze")            div.textContent="🧊";
+        else if(cell==="poison_item")       div.textContent="☠️";
+        else if(cell==="bandage")              div.textContent="🩹";
+        else if(itemEmoji[cell])            div.textContent=itemEmoji[cell];
+        monsters.forEach(m=>{
+          if(m.x===x&&m.y===y){
+            div.style.background="transparent";
+            /* لو في صورة للوحش استخدمها، غير كده استخدم emoji */
+            if(m.type==="fire" && monsterImgs.fire){
+              div.style.backgroundImage=`url('${monsterImgs.fire}')`;
+              div.style.backgroundSize="contain";
+              div.style.backgroundRepeat="no-repeat";
+              div.style.backgroundPosition="center";
+              div.textContent="";
+            } else if(m.type==="ice" && monsterImgs.ice){
+              div.style.backgroundImage=`url('${monsterImgs.ice}')`;
+              div.style.backgroundSize="contain";
+              div.style.backgroundRepeat="no-repeat";
+              div.style.backgroundPosition="center";
+              div.textContent="";
+            } else if(m.type==="normal" && monsterImgs.normal){
+              div.style.backgroundImage=`url('${monsterImgs.normal}')`;
+              div.style.backgroundSize="contain";
+              div.style.backgroundRepeat="no-repeat";
+              div.style.backgroundPosition="center";
+              div.textContent="";
+            } else {
+              div.textContent=m.type==="fire"?monsterImgs.fire:m.type==="ice"?monsterImgs:"👹";
+            }
+          }
+        });
+        if(cell==="firezone"){div.style.background="rgb(200,60,0)";div.textContent="🔸";}
+        if(cell==="icezone") {div.style.background="rgb(0,100,200)";div.textContent="🔹";}
+        if(cell==="scorch")  {div.style.background="rgb(80,30,0)";div.textContent="💨";}
+        if(cell==="icescorch"){div.style.background="rgb(0,60,120)";div.textContent="💨";}
+        if(cell==="fireball") div.textContent="🔥";
+        if(cell==="iceball")  div.textContent="❄️";
+      }else{
+        div.style.background="rgb(30,30,30)";
+      }
+      game.appendChild(div);
+    }
+  }
+
+  levelEl.textContent=stage;
+  hpBar.style.width=hp+"%";
+  hpBar.style.background=hp>60?"lime":hp>30?"orange":"red";
+
+
+  let hud="";
+  for(let k in itemTarget) hud+=`${itemEmoji[k]} ${itemName[k]}: ${itemCollected[k]||0}/${itemTarget[k]}<br>`;
+  itemsHud.innerHTML=hud;
+  drawHud();
+}
+
+/* ══ BLEEDING SYSTEM ══ */
+function getRoman(lvl){ return lvl===1?"I":lvl===2?"II":"III"; }
+function getBleedDPS(lvl){ return lvl===1?2:lvl===2?4:7; }
+function getPoisonDPS(lvl){ return lvl===1?3:lvl===2?6:10; }
+function getBurnDPS(lvl){ return lvl===1?3:lvl===2?5:8; }
+function getLevelDur(lvl){ return lvl===1?10000:lvl===2?8000:6000; }
+function getFrostDPS(lvl){ return lvl===1?2:lvl===2?4:7; }
+
+function startBleeding(){
+  bleedHitCount++;
+
+  /* رفع المستوى */
+  let newLevel = bleedLevel;
+  if(hp < 30 || bleedHitCount >= 3)      newLevel=3;
+  else if(hp < 60 || bleedHitCount >= 2) newLevel=2;
+  else                                    newLevel=1;
+
+  bleedLevel = newLevel;
+
+  /* أوقف الـ interval القديم */
+  clearInterval(bleedInterval);
+  if(activeEffects["bleeding"]) clearTimeout(activeEffects["bleeding"].timer);
+
+  let dps = getBleedDPS(bleedLevel);
+  let label = `Bleeding ${getRoman(bleedLevel)}`;
+
+  /* interval: ضرر كل ثانية */
+  bleedInterval=setInterval(()=>{
+    if(paused)return;
+    if(!activeEffects["bleeding"]){clearInterval(bleedInterval);bleedInterval=null;return;}
+    hp-=dps;
+    ludki(`🩸 ${label}`,`−${dps} HP/s`,"damage");
+    playSound(sounds.bleed);
+    if(hp<=0) triggerDeath(`Bled out 🩸 ${getRoman(bleedLevel)}`);
+    drawWorld();
+  },1000);
+
+  /* تحديث EFFECT_DEFS label */
+  EFFECT_DEFS["bleeding"].emoji="🩸";
+  EFFECT_DEFS["bleeding"].label=label;
+
+  /* تسجيل في activeEffects مع 10 ثواني */
+  let bleedDur=getLevelDur(bleedLevel);
+  activeEffects["bleeding"]={
+    endTime: Date.now()+bleedDur,
+    timer: setTimeout(()=>{
+      clearInterval(bleedInterval); bleedInterval=null;
+      bleedLevel=0; bleedHitCount=0;
+      delete activeEffects["bleeding"];
+      drawHud();
+    },bleedDur)
+  };
+  drawHud();
+}
+
+
+/* ══ FROST SYSTEM ══ */
+function startFrost(level){
+  frostHitCount++;
+  frostLevel = Math.min(3, level||frostHitCount);
+  let fdps = getFrostDPS(frostLevel);
+  let fdur = getLevelDur(frostLevel);
+  EFFECT_DEFS["frost"].label = `Frost ${getRoman(frostLevel)}`;
+
+  clearInterval(frostInterval);
+  if(activeEffects["frost"]) clearTimeout(activeEffects["frost"].timer);
+
+  frostInterval=setInterval(()=>{
+    if(paused)return;
+    if(!activeEffects["frost"]){clearInterval(frostInterval);frostInterval=null;return;}
+    hp-=fdps;
+    ludki(`❄️ Frost ${getRoman(frostLevel)}`,`−${fdps} HP/s`,"damage");
+    if(hp<=0) triggerDeath(`Frozen to death ❄️ ${getRoman(frostLevel)}`);
+    drawWorld();
+  },1000);
+
+  activeEffects["frost"]={
+    endTime:Date.now()+fdur,
+    timer:setTimeout(()=>{
+      EFFECT_DEFS["frost"].remove();
+      delete activeEffects["frost"];
+      drawHud();
+    },fdur)
+  };
+  ludki(`❄️ Frost ${getRoman(frostLevel)}`,"Watch out!","damage");
+  drawHud();
+}
+
+/* ══ DEATH ══ */
+let currentChase=null;
+let closestDistCache=99;
+function triggerDeath(reason){
+  clearInterval(bleedInterval); bleedInterval=null; bleedLevel=0; bleedHitCount=0;
+  clearInterval(poisonInterval); poisonInterval=null; poisonLevel=0; poisonHitCount=0;
+  clearInterval(frostInterval); frostInterval=null; frostLevel=0; frostHitCount=0;
+  burnLevel=0;
+  if(activeEffects["bleeding"]){ clearTimeout(activeEffects["bleeding"].timer); delete activeEffects["bleeding"]; }
+  hp=100; hitCooldown=false; levelCleared=false;
+  paused=true;
+  stopAllMusic(); currentChase=null;
+  playSound(sounds.gameover);
+  document.getElementById("gameOverReason").textContent=reason;
+  document.getElementById("gameOverScreen").classList.add("show");
+}
+
+document.getElementById("retryBtn").addEventListener("click",()=>{
+  document.getElementById("gameOverScreen").classList.remove("show");
+  paused=false;
+  playSound(sounds.restart);
+  createWorld(); placeItems(); spawnMonsters(); drawWorld();
+  resumeBg();
+});
+
+/* ══ LAVA BURNING ══ */
+const BURN_DURATION = 7000; /* مدة الحرق بعد الخروج من الـ Lava */
+
+function startBurning(){
+  /* رفع مستوى الحرق كلما دخل Lava */
+  burnLevel = Math.min(3, burnLevel+1);
+  let bdps = getBurnDPS(burnLevel);
+  let bdur = onLava ? 99999999 : getLevelDur(burnLevel);
+
+  EFFECT_DEFS["burning"].label=`Burning ${getRoman(burnLevel)}`;
+
+  if(activeEffects["burning"]) clearTimeout(activeEffects["burning"].timer);
+
+  if(!burningInterval){
+    burningInterval=setInterval(()=>{
+      if(paused)return;
+      if(!activeEffects["burning"]){clearInterval(burningInterval);burningInterval=null;return;}
+      hp-=bdps;
+      ludki(`🔥 Burning ${getRoman(burnLevel)}`,`−${bdps} HP/2s`,"damage");
+      playSound(sounds.burn);
+      if(hp<=0) triggerDeath(`Burned to death 🔥 ${getRoman(burnLevel)}`);
+      drawWorld();
+    },2000);
+  }
+
+  activeEffects["burning"]={
+    endTime: onLava ? Date.now()+99999999 : Date.now()+getLevelDur(burnLevel),
+    timer: setTimeout(()=>{
+      clearInterval(burningInterval); burningInterval=null;
+      burnLevel=0;
+      delete activeEffects["burning"];
+      drawHud();
+    }, bdur)
+  };
+  drawHud();
+}
+
+function updateBurningTimer(){
+  /* يُستدعى كل ما تغير موقع اللاعب */
+  let cell = world[player.y]?.[player.x];
+  let wasOnLava = onLava;
+  onLava = (cell === "lava");
+
+  if(activeEffects["burning"]){
+    if(onLava){
+      /* عاد للـ Lava: أعد التايمر للانهاية */
+      clearTimeout(activeEffects["burning"].timer);
+      activeEffects["burning"].endTime = Date.now()+99999999;
+      activeEffects["burning"].timer = setTimeout(()=>{
+        clearInterval(burningInterval); burningInterval=null;
+        delete activeEffects["burning"];
+        drawHud();
+      }, 99999999);
+      drawHud();
+    } else if(wasOnLava && !onLava){
+      /* خرج من الـ Lava: ابدأ العد التنازلي */
+      clearTimeout(activeEffects["burning"].timer);
+      activeEffects["burning"].endTime = Date.now()+BURN_DURATION;
+      activeEffects["burning"].timer = setTimeout(()=>{
+        clearInterval(burningInterval); burningInterval=null;
+        delete activeEffects["burning"];
+        drawHud();
+      }, BURN_DURATION);
+      drawHud();
+    }
+  }
+}
+
+
+/* ══ MONSTER TYPES ══ */
+/*
+  type: "normal" | "fire" | "ice"
+  x,y: position
+  cooldown1, cooldown2: ability cooldowns
+*/
+
+/* Fire monster ability 1: Flame Surge - scattered fire zones around monster */
+function flameSurge(monster){
+  if(monster.cd1 > 0) return;
+  monster.cd1 = 30; /* 30 ticks = 15s */
+  let positions=[];
+  let dirs=[[-4,0],[4,0],[0,-4],[0,4],[-3,-2],[3,2],[-2,3],[2,-3]];
+  for(let[dx,dy] of dirs){
+    let fx=monster.x+dx, fy=monster.y+dy;
+    if(fx>=0&&fy>=0&&fx<W&&fy<H&&world[fy][fx]!=="tree"&&world[fy][fx]!=="lava"){
+      world[fy][fx]="firezone";
+      positions.push({x:fx,y:fy});
+    }
+  }
+  /* Remove firezone after 20s */
+  setTimeout(()=>{
+    for(let p of positions){
+      if(world[p.y][p.x]==="firezone") world[p.y][p.x]="empty";
+    }
+  },20000);
+}
+
+/* Fire monster ability 2: Fireball - straight projectile, no tracking */
+function fireFireball(monster){
+  if(monster.cd2 > 0) return;
+  monster.cd2 = 20;
+  let dirs=[[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[1,1],[-1,1],[1,-1]];
+  let dir=dirs[Math.floor(Math.random()*dirs.length)];
+  let bx=monster.x, by=monster.y;
+
+  let interval=setInterval(()=>{
+    if(paused) return; /* توقف لو الـ pause فعال */
+
+    bx+=dir[0]; by+=dir[1];
+    if(bx<0||by<0||bx>=W||by>=H){ clearInterval(interval); return; }
+
+    /* خبطت شجرة → الشجرة تختفي + أثر النار */
+    if(world[by][bx]==="tree"){
+      clearInterval(interval);
+      world[by][bx]="scorch";
+      setTimeout(()=>{ if(world[by][bx]==="scorch") world[by][bx]="empty"; },10000);
+      drawWorld();
+      return;
+    }
+
+    /* خبطت اللاعب مباشرة → Burning III */
+    if(bx===player.x && by===player.y){
+      clearInterval(interval);
+      burnLevel=2; startBurning();
+      ludki("🔥 FIREBALL","Direct Hit! Burning III","damage");
+      playSound(sounds.burn);
+      if(hp<=0) triggerDeath("Killed by Fireball 🔥");
+      return;
+    }
+
+    /* الكرة تتحرك */
+    if(world[by][bx]==="empty") world[by][bx]="fireball";
+    setTimeout(()=>{ if(world[by][bx]==="fireball") world[by][bx]="empty"; drawWorld(); },200);
+    drawWorld();
+  },150);
+}
+
+/* Ice monster ability 1: Ice Storm - scattered ice zones */
+function iceStorm(monster){
+  if(monster.cd1 > 0) return;
+  monster.cd1 = 30;
+  let positions=[];
+  let dirs=[[-4,0],[4,0],[0,-4],[0,4],[-3,-2],[3,2],[-2,3],[2,-3]];
+  for(let[dx,dy] of dirs){
+    let fx=monster.x+dx, fy=monster.y+dy;
+    if(fx>=0&&fy>=0&&fx<W&&fy<H&&world[fy][fx]!=="tree"&&world[fy][fx]!=="lava"){
+      world[fy][fx]="icezone";
+      positions.push({x:fx,y:fy});
+    }
+  }
+  setTimeout(()=>{
+    for(let p of positions){
+      if(world[p.y][p.x]==="icezone") world[p.y][p.x]="empty";
+    }
+  },20000);
+}
+
+/* Ice monster ability 2: Ice Bolt - straight projectile, no tracking */
+function fireIceBolt(monster){
+  if(monster.cd2 > 0) return;
+  monster.cd2 = 20;
+  let dirs=[[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[1,1],[-1,1],[1,-1]];
+  let dir=dirs[Math.floor(Math.random()*dirs.length)];
+  let bx=monster.x, by=monster.y;
+
+  let interval=setInterval(()=>{
+    if(paused) return; /* توقف لو الـ pause فعال */
+
+    bx+=dir[0]; by+=dir[1];
+    if(bx<0||by<0||bx>=W||by>=H){ clearInterval(interval); return; }
+
+    /* خبطت شجرة → الشجرة تختفي + أثر الجليد */
+    if(world[by][bx]==="tree"){
+      clearInterval(interval);
+      world[by][bx]="icescorch";
+      setTimeout(()=>{ if(world[by][bx]==="icescorch") world[by][bx]="empty"; },10000);
+      drawWorld();
+      return;
+    }
+
+    /* خبطت اللاعب مباشرة → Frost III */
+    if(bx===player.x && by===player.y){
+      clearInterval(interval);
+      startFrost(3);
+      ludki("❄️ ICE BOLT","Direct Hit! Frost III","damage");
+      if(hp<=0) triggerDeath("Killed by Ice Bolt ❄️");
+      return;
+    }
+
+    /* الكرة تتحرك */
+    if(world[by][bx]==="empty") world[by][bx]="iceball";
+    setTimeout(()=>{ if(world[by][bx]==="iceball") world[by][bx]="empty"; drawWorld(); },200);
+    drawWorld();
+  },150);
+}
+
+/* ══ MOVE ══ */
+/* تتبع الـ Hold */
+const keysHeld={};
+document.addEventListener("keydown",e=>{ keysHeld[e.key]=true; });
+document.addEventListener("keyup",e=>{ keysHeld[e.key]=false; });
+
+/* Speed Hold interval */
+let speedHoldInterval=null;
+function startSpeedHold(dx,dy){
+  if(speedHoldInterval) return;
+  let units=speedLevel===1?4:speedLevel===2?7:12;
+  let stepsInHold=0;
+  speedHoldInterval=setInterval(()=>{
+    if(paused||!activeEffects["speed"]){
+      clearInterval(speedHoldInterval); speedHoldInterval=null; return;
+    }
+    /* تحقق لو الزر لا يزال مضغوطاً */
+    let anyHeld=keysHeld["ArrowUp"]||keysHeld["ArrowDown"]||keysHeld["ArrowLeft"]||keysHeld["ArrowRight"]
+               ||keysHeld["w"]||keysHeld["s"]||keysHeld["a"]||keysHeld["d"]
+               ||keysHeld["W"]||keysHeld["S"]||keysHeld["A"]||keysHeld["D"];
+    if(!anyHeld){ clearInterval(speedHoldInterval); speedHoldInterval=null; stepsInHold=0; return; }
+
+    if(stepsInHold>=units){
+      /* انتهت الـ units، انتظر hold جديد */
+      clearInterval(speedHoldInterval); speedHoldInterval=null; stepsInHold=0; return;
+    }
+
+    /* تحرك خطوة */
+    let nx=player.x+dx, ny=player.y+dy;
+    if(nx>=0&&ny>=0&&nx<W&&ny<H&&(world[ny][nx]!=="tree"||ghostMode)){
+      if(world[ny][nx]==="tree"&&ghostMode){player.x=nx;player.y=ny;}
+      else{player.x=nx;player.y=ny;}
+      playSoundOnce(sounds.walk);
+      updateBurningTimer();
+      handleCell(nx,ny);
+      drawWorld();
+    }
+    stepsInHold++;
+  },80); /* سرعة الحركة في الـ hold */
+}
+
+document.addEventListener("keydown",e=>{
+  /* منع Hold في الوضع العادي - e.repeat يكون true لو الزر مضغوط مطول */
+  if(e.repeat && !activeEffects["speed"]) return;
+
+  if(e.key==="Escape"){
+    paused=!paused;
+    if(paused){
+      stopAllMusic();
+      clearInterval(window._gameLoop); window._gameLoop=null;
+    } else {
+      if(currentChase) playMonsterMusic(currentChase, closestDistCache||99);
+      else resumeBg();
+      window._gameLoop=setInterval(()=>{ moveMonsters(); checkWin(); drawWorld(); updateVFX(); },500);
+    }
+    ludki(paused?"PAUSED":"RESUME",paused?"Game Stopped":"Game Running","pause");
+    return;
+  }
+  if(paused)return;
+
+  let dx=0,dy=0;
+  if(e.key==="ArrowUp"   ||e.key==="w"||e.key==="W") dy=-1;
+  else if(e.key==="ArrowDown" ||e.key==="s"||e.key==="S") dy=1;
+  else if(e.key==="ArrowLeft" ||e.key==="a"||e.key==="A") dx=-1;
+  else if(e.key==="ArrowRight"||e.key==="d"||e.key==="D") dx=1;
+  else return;
+
+  /* حساب عدد الخطوات في هذه الضغطة */
+  let movesThisPress=1;
+  if(activeEffects["speed"] && speedStepsLeft>0){
+    movesThisPress=1; /* خطوة واحدة لكل ضغطة لكن نحسب من الـ hold */
+    speedStepsLeft--;
+    if(speedStepsLeft<=0){
+      /* انتهت الخطوات المسموحة، أعد العداد للـ hold التالي */
+      let units=speedLevel===1?4:speedLevel===2?7:12;
+      speedStepsLeft=units;
+    }
+  }
+
+  for(let step=0;step<movesThisPress;step++){
+    let nx=player.x+dx, ny=player.y+dy;
+    if(nx<0||ny<0||nx>=W||ny>=H) break;
+    if(world[ny][nx]==="tree"&&!ghostMode) break;
+    if(world[ny][nx]==="tree"&&ghostMode){player.x=nx;player.y=ny;continue;}
+
+    player.x=nx; player.y=ny;
+    playSoundOnce(sounds.walk);
+    updateBurningTimer(); /* تحقق من الـ Lava بعد كل خطوة */
+
+    let cell=world[ny][nx];
+    handleCell(nx,ny);
+  }
+  drawWorld();
+});
+
+function handleCell(nx,ny){
+    let cell=world[ny][nx];
+
+    /* 🔸 FIREZONE: يعطي Burning II */
+    if(cell==="firezone"){
+      if(!lavaImmune){
+        burnLevel=Math.max(burnLevel,1);
+        startBurning();
+        ludki("🔸 Fire Zone","Burning II!","damage");
+        playSound(sounds.burn);
+      }
+    }
+    /* 🔹 ICEZONE: يعطي Frost II */
+    if(cell==="icezone"){
+      startFrost(2);
+      ludki("🔹 Ice Zone","Frost II!","damage");
+    }
+    /* 💨 SCORCH (أثر كرة النار في الشجرة): يعطي Burning I */
+    if(cell==="scorch"){
+      burnLevel=0;
+      startBurning();
+      ludki("💨 Fire Scorch","Burning I","damage");
+      playSound(sounds.burn);
+    }
+    /* 🧊 ICESCORCH (أثر كرة الجليد في الشجرة): يعطي Frost I */
+    if(cell==="icescorch"){
+      startFrost(1);
+      ludki("🧊 Ice Scorch","Frost I","damage");
+    }
+
+    /* 🌋 LAVA: −25 فوري + burning مستمر */
+    if(cell==="lava"){
+      if(!lavaImmune){
+        hp-=25;
+        ludki("🔥 LAVA","−25 HP | Burning!","damage");
+        playSound(sounds.burn);
+        if(hp<=0){triggerDeath("Burned by Lava 🌋");drawWorld();return;}
+        startBurning();
+      }else{
+        ludki("🌋 Immune","Lava has no effect!","collect");
+      }
+    }
+    else if(cell==="med"){
+      world[ny][nx]="empty";
+      hp=Math.min(100,hp+15);
+      /* شيل Weakness و Poison */
+      for(let eff of ["weakness","poison"]){
+        if(activeEffects[eff]){
+          clearTimeout(activeEffects[eff].timer);
+          EFFECT_DEFS[eff].remove();
+          delete activeEffects[eff];
+        }
+      }
+      /* أعطِ Strength */
+      applyEffect("strength");
+      ludki("🧪 MED","+15 HP | Strength 💪","heal");
+      playSound(sounds.med);
+    }
+    else if(cell==="medkit"){
+      world[ny][nx]="empty"; hp=100;
+      applyEffect("shield");
+      ludki("🧰 MEDKIT","Full HP + Shield 🛡️","collect");
+      playSound(sounds.medkit);
+    }
+    else if(cell==="bandage"){
+      /* تعمل فقط لو HP ناقص أو عنده bleeding/burning */
+      let needsHealing = hp < 100 || activeEffects["bleeding"] || activeEffects["burning"];
+      if(needsHealing){
+        world[ny][nx]="empty";
+        hp=Math.min(100,hp+10);
+        for(let eff of ["bleeding","burning"]){
+          if(activeEffects[eff]){
+            clearTimeout(activeEffects[eff].timer);
+            EFFECT_DEFS[eff].remove();
+            delete activeEffects[eff];
+          }
+        }
+        clearInterval(bleedInterval); bleedInterval=null; bleedLevel=0; bleedHitCount=0;
+        clearInterval(burningInterval); burningInterval=null;
+        ludki("🩹 BANDAGE","+10 HP | Bleeding & Burning cleared","heal");
+        playSound(sounds.medkit);
+      }
+    }
+    else if(cell==="energy"){
+      world[ny][nx]="empty";
+      /* رفع مستوى Speed لو فعال */
+      if(activeEffects["speed"]) speedLevel=Math.min(3,speedLevel+1);
+      else speedLevel=1;
+      /* تحديث label */
+      EFFECT_DEFS["speed"].label=`Speed ${getRoman(speedLevel)}`;
+      /* عدد الخطوات حسب المستوى */
+      let units=speedLevel===1?4:speedLevel===2?7:12;
+      speedStepsLeft=units;
+      applyEffect("speed");
+      playSound(sounds.effect);
+    }
+    else if(cell==="question"){
+      world[ny][nx]="empty";
+      let eff=QUESTION_EFFECTS[Math.floor(Math.random()*QUESTION_EFFECTS.length)];
+      applyEffect(eff);
+      playSound(sounds.effect);
+    }
+    else if(cell==="freeze"){
+      world[ny][nx]="empty";
+      applyEffect("freeze");
+      playSound(sounds.effect);
+    }
+    else if(cell==="poison_item"){
+      world[ny][nx]="empty";
+      applyEffect("poison");
+      playSound(sounds.effect);
+    }
+    else if(itemTarget[cell]){
+      world[ny][nx]="empty";
+      let gain=luckyMode?2:1;
+      itemCollected[cell]=(itemCollected[cell]||0)+gain;
+      ludki("COLLECT",`+${gain} ${itemName[cell]||cell}`,"collect");
+      if(cell==="gold")         playSound(sounds.gold);
+      else if(cell==="diamond") playSound(sounds.diamond);
+      else                      playSound(sounds.collect);
+    }
+
+}
+
+document.addEventListener("keyup",e=>{
+  if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","w","a","s","d","W","A","S","D"].includes(e.key)){
+    sounds.walk.pause(); sounds.walk.currentTime=0;
+    /* أوقف hold لو رُفع الزر */
+    clearInterval(speedHoldInterval); speedHoldInterval=null;
+  }
+});
+
+/* ══ MONSTERS ══ */
+function moveMonsters(){
+  if(paused)return;
+
+  /* أوجد الوحش الأقرب ونوعه */
+  let closestMonster=null, closestDist=Infinity; closestDistCache=Infinity;
+  monsters.forEach(m=>{
+    let d=Math.abs(m.x-player.x)+Math.abs(m.y-player.y);
+    if(d<closestDist){closestDist=d;closestMonster=m;closestDistCache=d;}
+  });
+
+  let newState=closestDist<=14?closestMonster?.type:null;
+
+  if(newState){
+    /* شغل الـ layer المناسب حسب المسافة */
+    playMonsterMusic(newState, closestDist);
+    currentChase=newState;
+  } else if(currentChase!==null){
+    stopChase();
+    currentMonsterTrack=null;
+    resumeBg();
+    currentChase=null;
+  }
+
+  if(freezeMonsters)return;
+
+  /* تقليل الـ cooldowns */
+  monsters.forEach(m=>{ if(m.cd1>0)m.cd1--; if(m.cd2>0)m.cd2--; });
+
+  /* تفعيل القدرات */
+  monsters.forEach(m=>{
+    let dist=Math.abs(m.x-player.x)+Math.abs(m.y-player.y);
+    if(m.type==="fire"){
+      if(dist<=6) flameSurge(m);
+      if(dist<=8) fireFireball(m);
+    }
+    if(m.type==="ice"){
+      if(dist<=6) iceStorm(m);
+      if(dist<=8) fireIceBolt(m);
+    }
+  });
+
+  monsters.forEach(m=>{
+    let passable=["empty","med","medkit","energy","question","freeze","poison_item",
+                  "bandage","gold","copper","silver","diamond","iron","obsidian",
+                  "firezone","icezone","lava","scorch","icescorch"];
+    let moves=[
+      {x:m.x+1,y:m.y},{x:m.x-1,y:m.y},{x:m.x,y:m.y+1},{x:m.x,y:m.y-1}
+    ].filter(o=>o.x>=0&&o.y>=0&&o.x<W&&o.y<H&&(world[o.y][o.x]!=="tree"));
+    moves.sort((a,b)=>(Math.abs(a.x-player.x)+Math.abs(a.y-player.y))-(Math.abs(b.x-player.x)+Math.abs(b.y-player.y)));
+    if(moves[0]){m.x=moves[0].x;m.y=moves[0].y;}
+
+    if(m.x===player.x&&m.y===player.y&&!shield&&!magicShieldActive&&!invincibleMode&&!hitCooldown){
+      if(magicShieldActive){
+        ludki("🔮 Blocked!","Magic Shield absorbed!","collect");
+        clearTimeout(activeEffects["magicShield"]?.timer);
+        delete activeEffects["magicShield"];
+        EFFECT_DEFS.magicShield.remove();
+        return;
+      }
+      let baseDmg=m.type==="fire"?17:m.type==="ice"?20:20;
+      let dmg=weaknessActive?baseDmg*2:strengthActive?Math.floor(baseDmg*0.35):baseDmg;
+      hp-=dmg; hitCooldown=true;
+      setTimeout(()=>hitCooldown=false,1000);
+      ludki("HIT",`−${dmg} HP`,"damage");
+      playSound(sounds.hit);
+      /* تأثير حسب نوع الوحش */
+      if(m.type==="fire")  startBurning();
+      else if(m.type==="ice") startFrost(1);
+      else startBleeding();
+      if(hp<=0) triggerDeath(`Killed by ${m.type==="fire"?"🔴 Fire Monster":m.type==="ice"?"🔵 Ice Monster":"👹 Monster"}`);
+    }
+  });
+}
+
+/* ══ WIN ══ */
+function checkWin(){
+  if(paused||levelCleared)return;
+  let done=true;
+  for(let k in itemTarget) if((itemCollected[k]||0)<itemTarget[k]){done=false;break;}
+  if(done){
+    levelCleared=true; stage++;
+    ludki("LEVEL COMPLETE","→ Level "+stage,"level");
+    playSound(sounds.level);
+    stopAllMusic(); currentChase=null;
+    setTimeout(()=>{
+      createWorld(); placeItems(); spawnMonsters(); drawWorld();
+      levelCleared=false;
+      playRandomBg(); /* BG عشوائي جديد مع كل مستوى */
+    },1200);
+  }
+}
+
+
+/* ══ VFX UPDATE ══ */
+function updateVFX(){
+  let classes=[];
+  if(activeEffects["bleeding"])  classes.push("vfx-bleeding");
+  if(activeEffects["poison"])    classes.push("vfx-poison");
+  if(activeEffects["burning"])   classes.push("vfx-burning");
+  if(activeEffects["frost"])     classes.push("vfx-frost");
+  if(activeEffects["blind"])     classes.push("vfx-blind");
+  if(activeEffects["weakness"])  classes.push("vfx-weakness");
+  /* remove all vfx classes then add active */
+  document.body.className=classes.join(" ");
+}
+
+/* ══ LOOP ══ */
+window._gameLoop=setInterval(()=>{ moveMonsters(); checkWin(); drawWorld(); updateVFX(); },500);
+
+
+/* ══════════════════════════════════
+   🛠️ ADMIN CONSOLE COMMANDS
+   اكتب الأوامر في الـ Console (F12)
+   ══════════════════════════════════ */
+
+/* 🏆 مستوى */
+function reachLevel(n){
+  stage=n;
+  createWorld(); placeItems(); spawnMonsters(); drawWorld();
+  playRandomBg();
+  console.log(`%c✅ انتقلت للمستوى ${n}`,"color:lime;font-size:14px");
+}
+
+function setStage(n){ reachLevel(n); }
+
+/* ❤️ صحة */
+function setHP(n){
+  hp=Math.max(1,Math.min(100,n));
+  drawWorld();
+  console.log(`%c✅ HP = ${hp}`,"color:lime;font-size:14px");
+}
+
+function godMode(){
+  applyEffect("invincible");
+  /* نجعله دائم بتجديد مستمر */
+  if(window._godInterval) clearInterval(window._godInterval);
+  window._godInterval=setInterval(()=>{
+    if(!activeEffects["invincible"]) applyEffect("invincible");
+  },5000);
+  console.log("%c✅ God Mode ON — invincible دائم","color:gold;font-size:14px");
+}
+
+function die(){
+  triggerDeath("💀 Admin Command");
+  console.log("%c☠️ تم القتل بأمر الأدمن","color:red;font-size:14px");
+}
+
+/* ⚗️ تأثيرات */
+/*
+  giveEffect(name, durationSeconds, level)
+  - name: اسم التأثير (اجباري)
+  - durationSeconds: المدة بالثواني (اجباري)
+  - level: المستوى I/II/III (اختياري - للتأثيرات ذات المستويات)
+*/
+function giveEffect(name, durationSec, level){
+  if(!EFFECT_DEFS[name]){
+    console.log(`%c❌ تأثير غير موجود: ${name}\nالتأثيرات المتاحة: ${Object.keys(EFFECT_DEFS).join(", ")}`,"color:red");
+    return;
+  }
+
+  /* أوقف القديم لو موجود */
+  if(activeEffects[name]){
+    clearTimeout(activeEffects[name].timer);
+    EFFECT_DEFS[name].remove();
+    delete activeEffects[name];
+  }
+
+  let dur = durationSec * 1000;
+
+  /* تأثيرات ذات مستويات */
+  if(name==="bleeding" && level){
+    bleedLevel=Math.min(3,level);
+    bleedHitCount=level;
+    let dps=getBleedDPS(bleedLevel);
+    EFFECT_DEFS["bleeding"].label=`Bleeding ${getRoman(bleedLevel)}`;
+    clearInterval(bleedInterval);
+    bleedInterval=setInterval(()=>{
+      if(paused)return;
+      hp-=dps;
+      ludki(`🩸 Bleeding ${getRoman(bleedLevel)}`,`−${dps} HP/s`,"damage");
+      playSound(sounds.bleed);
+      if(hp<=0) triggerDeath(`Bled out 🩸`);
+      drawWorld();
+    },1000);
+    activeEffects["bleeding"]={
+      endTime:Date.now()+dur,
+      timer:setTimeout(()=>{ clearInterval(bleedInterval); bleedInterval=null; bleedLevel=0; delete activeEffects["bleeding"]; drawHud(); },dur)
+    };
+    drawHud();
+    console.log(`%c✅ Bleeding ${getRoman(bleedLevel)} — ${durationSec}s`,"color:red;font-size:14px");
+    return;
+  }
+
+  if(name==="poison" && level){
+    poisonLevel=Math.min(3,level);
+    poisonHitCount=level;
+    let pdps=getPoisonDPS(poisonLevel);
+    EFFECT_DEFS["poison"].label=`Poison ${getRoman(poisonLevel)}`;
+    clearInterval(poisonInterval);
+    poisonInterval=setInterval(()=>{
+      if(paused)return;
+      hp-=pdps;
+      ludki(`☠️ Poison ${getRoman(poisonLevel)}`,`−${pdps} HP/s`,"damage");
+      if(hp<=0) triggerDeath(`Poisoned ☠️`);
+      drawWorld();
+    },1000);
+    activeEffects["poison"]={
+      endTime:Date.now()+dur,
+      timer:setTimeout(()=>{ clearInterval(poisonInterval); poisonInterval=null; poisonLevel=0; delete activeEffects["poison"]; drawHud(); },dur)
+    };
+    drawHud();
+    console.log(`%c✅ Poison ${getRoman(poisonLevel)} — ${durationSec}s`,"color:lime;font-size:14px");
+    return;
+  }
+
+  if(name==="burning" && level){
+    burnLevel=Math.min(3,level);
+    let bdps=getBurnDPS(burnLevel);
+    EFFECT_DEFS["burning"].label=`Burning ${getRoman(burnLevel)}`;
+    clearInterval(burningInterval);
+    burningInterval=setInterval(()=>{
+      if(paused)return;
+      hp-=bdps;
+      ludki(`🔥 Burning ${getRoman(burnLevel)}`,`−${bdps} HP/2s`,"damage");
+      playSound(sounds.burn);
+      if(hp<=0) triggerDeath(`Burned 🔥`);
+      drawWorld();
+    },2000);
+    activeEffects["burning"]={
+      endTime:Date.now()+dur,
+      timer:setTimeout(()=>{ clearInterval(burningInterval); burningInterval=null; burnLevel=0; delete activeEffects["burning"]; drawHud(); },dur)
+    };
+    drawHud();
+    console.log(`%c✅ Burning ${getRoman(burnLevel)} — ${durationSec}s`,"color:orange;font-size:14px");
+    return;
+  }
+
+  if(name==="frost" && level){
+    frostLevel=Math.min(3,level);
+    let fdps=getFrostDPS(frostLevel);
+    EFFECT_DEFS["frost"].label=`Frost ${getRoman(frostLevel)}`;
+    clearInterval(frostInterval);
+    frostInterval=setInterval(()=>{
+      if(paused)return;
+      hp-=fdps;
+      ludki(`❄️ Frost ${getRoman(frostLevel)}`,`−${fdps} HP/s`,"damage");
+      if(hp<=0) triggerDeath(`Frozen ❄️`);
+      drawWorld();
+    },1000);
+    activeEffects["frost"]={
+      endTime:Date.now()+dur,
+      timer:setTimeout(()=>{ clearInterval(frostInterval); frostInterval=null; frostLevel=0; delete activeEffects["frost"]; drawHud(); },dur)
+    };
+    drawHud();
+    console.log(`%c✅ Frost ${getRoman(frostLevel)} — ${durationSec}s`,"color:#0af;font-size:14px");
+    return;
+  }
+
+  /* تأثيرات عادية بدون مستوى */
+  EFFECT_DEFS[name].apply();
+  activeEffects[name]={
+    endTime:Date.now()+dur,
+    timer:setTimeout(()=>{ EFFECT_DEFS[name].remove(); delete activeEffects[name]; drawHud(); },dur)
+  };
+  drawHud();
+  console.log(`%c✅ ${EFFECT_DEFS[name].emoji} ${name} — ${durationSec}s`,"color:lime;font-size:14px");
+}
+
+function removeEffect(name){
+  if(activeEffects[name]){
+    clearTimeout(activeEffects[name].timer);
+    EFFECT_DEFS[name]?.remove();
+    delete activeEffects[name];
+    drawHud();
+    console.log(`%c✅ تم إزالة ${name}`,"color:lime;font-size:14px");
+  } else {
+    console.log(`%c⚠️ ${name} غير فعال`,"color:orange");
+  }
+}
+
+function clearAllEffects(){
+  for(let name in activeEffects){
+    clearTimeout(activeEffects[name].timer);
+    EFFECT_DEFS[name]?.remove();
+  }
+  activeEffects={};
+  clearInterval(bleedInterval); bleedInterval=null; bleedLevel=0; bleedHitCount=0;
+  clearInterval(poisonInterval); poisonInterval=null; poisonLevel=0; poisonHitCount=0;
+  clearInterval(burningInterval); burningInterval=null; burnLevel=0;
+  clearInterval(frostInterval); frostInterval=null; frostLevel=0; frostHitCount=0;
+  vision=5; stepSize=1; shield=false; magicShieldActive=false;
+  magnetActive=false; lavaImmune=false; ghostMode=false;
+  luckyMode=false; invincibleMode=false; weaknessActive=false; strengthActive=false;
+  drawWorld();
+  console.log("%c✅ تم مسح كل التأثيرات","color:lime;font-size:14px");
+}
+
+function maxEffects(){
+  let good=["speed","magicShield","magnet","reveal","lavaImmunity","ghost","lucky","invincible","strength","shield","freeze"];
+  for(let e of good) giveEffect(e, 60);
+  console.log("%c✅ كل التأثيرات الجيدة فعالة لـ 60 ثانية","color:gold;font-size:14px");
+}
+
+/* 💰 عناصر */
+function fillInventory(){
+  for(let k in itemTarget) itemCollected[k]=itemTarget[k];
+  drawWorld();
+  console.log("%c✅ تم جمع كل العناصر","color:lime;font-size:14px");
+}
+
+function spawnItem(type, count=5){
+  let placed=0;
+  for(let dy=-3;dy<=3&&placed<count;dy++){
+    for(let dx=-3;dx<=3&&placed<count;dx++){
+      let nx=player.x+dx, ny=player.y+dy;
+      if(nx>=0&&ny>=0&&nx<W&&ny<H&&world[ny][nx]==="empty"){
+        world[ny][nx]=type; placed++;
+      }
+    }
+  }
+  drawWorld();
+  console.log(`%c✅ تم وضع ${placed} من ${type} حول اللاعب`,"color:lime;font-size:14px");
+}
+
+/* 👹 وحوش */
+function killMonsters(){
+  monsters=[];
+  stopChase(); currentChase=null; resumeBg();
+  drawWorld();
+  console.log("%c✅ تم قتل كل الوحوش","color:lime;font-size:14px");
+}
+
+function spawnMonster(type="normal"){
+  let x=player.x+5, y=player.y+5;
+  if(x<W&&y<H) monsters.push({x,y,type,cd1:0,cd2:0});
+  drawWorld();
+  console.log(`%c✅ تم إضافة وحش ${type}`,"color:lime;font-size:14px");
+}
+
+/* 🗺️ خريطة */
+function revealMap(){
+  giveEffect("reveal", 999);
+  console.log("%c✅ الخريطة مكشوفة","color:lime;font-size:14px");
+}
+
+function teleport(x,y){
+  if(x>=0&&y>=0&&x<W&&y<H){
+    player.x=x; player.y=y;
+    drawWorld();
+    console.log(`%c✅ انتقلت إلى (${x},${y})`,"color:lime;font-size:14px");
+  } else {
+    console.log(`%c❌ إحداثيات خارج الخريطة (0-${W-1}, 0-${H-1})`,"color:red");
+  }
+}
+
+function noClip(){
+  ghostMode=!ghostMode;
+  if(!activeEffects["ghost"]){
+    activeEffects["ghost"]={endTime:Date.now()+999999,timer:null};
+    EFFECT_DEFS["ghost"].emoji="👻";
+    EFFECT_DEFS["ghost"].label="Ghost (Admin)";
+  }
+  drawHud();
+  console.log(`%c${ghostMode?"✅ NoClip ON":"❌ NoClip OFF"}`,"color:lime;font-size:14px");
+}
+
+/* 📋 عرض الأوامر */
+function help(){
+  console.log(`%c
+╔══════════════════════════════════════════╗
+║         🛠️ ADMIN COMMANDS               ║
+╠══════════════════════════════════════════╣
+║  🏆 LEVEL                               ║
+║  reachLevel(n)      → انتقل لمستوى      ║
+║                                          ║
+║  ❤️ HEALTH                              ║
+║  setHP(n)           → تحديد HP (1-100)  ║
+║  godMode()          → invincible دائم   ║
+║  die()              → موت فوري          ║
+║                                          ║
+║  ⚗️ EFFECTS                             ║
+║  giveEffect(name, sec, lvl?)            ║
+║    → مثال: giveEffect("poison",10,2)   ║
+║    → مثال: giveEffect("blind",8)       ║
+║  removeEffect(name) → أزل تأثير        ║
+║  clearAllEffects()  → امسح الكل        ║
+║  maxEffects()       → كل تأثيرات جيدة ║
+║                                          ║
+║  💰 ITEMS                               ║
+║  fillInventory()    → اجمع كل العناصر  ║
+║  spawnItem(type,n)  → ضع عناصر         ║
+║    → مثال: spawnItem("gold",10)        ║
+║                                          ║
+║  👹 MONSTERS                            ║
+║  killMonsters()     → اقتل الكل        ║
+║  spawnMonster(type) → أضف وحش          ║
+║    → "normal" | "fire" | "ice"         ║
+║                                          ║
+║  🗺️ MAP                                 ║
+║  revealMap()        → اكشف الخريطة     ║
+║  teleport(x,y)      → انتقل لموقع      ║
+║  noClip()           → امشي من الأشجار  ║
+╚══════════════════════════════════════════╝
+`,"color:lime;font-family:monospace;font-size:12px");
+}
+
+/* رسالة ترحيب في الـ Console */
+console.log("%c🎮 Final Survival Game — Admin Mode Ready!\naكتب help() لعرض كل الأوامر","color:gold;font-size:16px;font-weight:bold");
+
+
+/* ══════════════════════════════════
+   👑 OWNER / FULL CONTROL COMMANDS
+   ══════════════════════════════════ */
+
+/* ══ WORLD CONTROL ══ */
+function clearTrees(){
+  for(let y=0;y<H;y++) for(let x=0;x<W;x++) if(world[y][x]==="tree") world[y][x]="empty";
+  drawWorld();
+  console.log("%c✅ تم إزالة كل الأشجار","color:lime;font-size:14px");
+}
+
+function fillTrees(){
+  for(let y=0;y<H;y++) for(let x=0;x<W;x++) if(world[y][x]==="empty") world[y][x]="tree";
+  world[player.y][player.x]="empty";
+  drawWorld();
+  console.log("%c✅ تم ملء الخريطة بالأشجار","color:lime;font-size:14px");
+}
+
+function setVision(n){
+  vision=n;
+  drawWorld();
+  console.log(`%c✅ الرؤية = ${n}`,"color:lime;font-size:14px");
+}
+
+function fillLava(){
+  for(let y=0;y<H;y++) for(let x=0;x<W;x++) if(world[y][x]==="empty") world[y][x]="lava";
+  world[player.y][player.x]="empty";
+  drawWorld();
+  console.log("%c🌋 تم ملء الخريطة بالـ Lava","color:orange;font-size:14px");
+}
+
+function clearLava(){
+  for(let y=0;y<H;y++) for(let x=0;x<W;x++) if(world[y][x]==="lava") world[y][x]="empty";
+  drawWorld();
+  console.log("%c✅ تم إزالة كل الـ Lava","color:lime;font-size:14px");
+}
+
+function setCell(x,y,type){
+  if(x>=0&&y>=0&&x<W&&y<H){ world[y][x]=type; drawWorld(); console.log(`%c✅ (${x},${y}) = ${type}`,"color:lime"); }
+  else console.log("%c❌ إحداثيات خارج الخريطة","color:red");
+}
+
+function getCell(x,y){
+  if(x>=0&&y>=0&&x<W&&y<H) console.log(`%c📍 (${x},${y}) = ${world[y][x]}`,"color:cyan;font-size:14px");
+  else console.log("%c❌ إحداثيات خارج الخريطة","color:red");
+}
+
+function whereAmI(){
+  console.log(`%c📍 موقعك: (${player.x}, ${player.y}) | Level: ${stage} | HP: ${hp}`,"color:cyan;font-size:14px");
+}
+
+function reloadMap(){
+  createWorld(); placeItems(); spawnMonsters(); drawWorld();
+  console.log("%c✅ تم إعادة تحميل الخريطة","color:lime;font-size:14px");
+}
+
+/* ══ MONSTER CONTROL ══ */
+function setMonsterPos(index, x, y){
+  if(monsters[index]){ monsters[index].x=x; monsters[index].y=y; drawWorld(); console.log(`%c✅ وحش ${index} → (${x},${y})`,"color:lime"); }
+  else console.log(`%c❌ لا يوجد وحش رقم ${index}`,"color:red");
+}
+
+function listMonsters(){
+  monsters.forEach((m,i)=> console.log(`%c👹 [${i}] type:${m.type} pos:(${m.x},${m.y}) cd1:${m.cd1} cd2:${m.cd2}`,"color:cyan;font-size:12px"));
+}
+
+function freezeAllMonsters(){
+  freezeMonsters=true;
+  console.log("%c🧊 كل الوحوش متجمدة","color:#0af;font-size:14px");
+}
+
+function unfreezeAllMonsters(){
+  freezeMonsters=false;
+  console.log("%c✅ الوحوش حرة","color:lime;font-size:14px");
+}
+
+function setMonsterSpeed(ms){
+  /* تغيير سرعة الـ loop */
+  clearInterval(window._gameLoop);
+  window._gameLoop=setInterval(()=>{ moveMonsters(); checkWin(); drawWorld(); updateVFX(); },ms);
+  console.log(`%c✅ سرعة اللعبة = ${ms}ms`,"color:lime;font-size:14px");
+}
+
+/* ══ PLAYER CONTROL ══ */
+function setPlayer(x,y){ teleport(x,y); }
+
+function maxHP(){ hp=100; drawWorld(); console.log("%c✅ HP = 100","color:lime"); }
+
+function setShield(on=true){
+  shield=on;
+  if(on){ activeEffects["shield"]={endTime:Date.now()+999999,timer:null}; }
+  else { delete activeEffects["shield"]; }
+  drawWorld(); drawHud();
+  console.log(`%c${on?"✅ Shield ON":"❌ Shield OFF"}`,"color:lime;font-size:14px");
+}
+
+function setInvincible(on=true){
+  invincibleMode=on;
+  if(on){ activeEffects["invincible"]={endTime:Date.now()+999999,timer:null}; EFFECT_DEFS["invincible"].label="Invincible (∞)"; }
+  else { delete activeEffects["invincible"]; invincibleMode=false; }
+  drawHud();
+  console.log(`%c${on?"✅ Invincible ON":"❌ Invincible OFF"}`,"color:gold;font-size:14px");
+}
+
+/* ══ ITEMS CONTROL ══ */
+function giveGold(n=10){ itemCollected["gold"]=(itemCollected["gold"]||0)+n; drawWorld(); console.log(`%c✅ +${n} Gold`,"color:gold;font-size:14px"); }
+function giveDiamond(n=5){ itemCollected["diamond"]=(itemCollected["diamond"]||0)+n; drawWorld(); console.log(`%c✅ +${n} Diamond`,"color:#0af;font-size:14px"); }
+
+function setItemCount(type,n){
+  if(itemCollected[type]!==undefined){ itemCollected[type]=n; drawWorld(); console.log(`%c✅ ${type} = ${n}`,"color:lime"); }
+  else console.log(`%c❌ عنصر غير موجود: ${type}`,"color:red");
+}
+
+function listItems(){
+  for(let k in itemTarget) console.log(`%c${itemEmoji[k]||"?"} ${k}: ${itemCollected[k]||0}/${itemTarget[k]}`,"color:cyan;font-size:12px");
+}
+
+function clearAllItems(){
+  for(let y=0;y<H;y++) for(let x=0;x<W;x++){
+    if(itemTarget[world[y][x]]) world[y][x]="empty";
+  }
+  drawWorld();
+  console.log("%c✅ تم مسح كل العناصر من الخريطة","color:lime");
+}
+
+/* ══ GAME CONTROL ══ */
+function pauseGame(){
+  paused=true;
+  stopAllMusic();
+  /* تجميد كل الـ intervals */
+  if(window._gameLoop){ clearInterval(window._gameLoop); window._gameLoop=null; }
+  console.log("%c⏸️ اللعبة متوقفة — كل شيء متجمد","color:orange;font-size:14px");
+}
+function resumeGame(){
+  paused=false;
+  resumeBg();
+  /* إعادة تشغيل الـ loop */
+  if(!window._gameLoop) window._gameLoop=setInterval(()=>{ moveMonsters(); checkWin(); drawWorld(); updateVFX(); },500);
+  console.log("%c▶️ اللعبة تعمل","color:lime;font-size:14px");
+}
+
+function setGameSpeed(ms=500){
+  clearInterval(window._gameLoop);
+  window._gameLoop=setInterval(()=>{ moveMonsters(); checkWin(); drawWorld(); updateVFX(); },ms);
+  console.log(`%c✅ سرعة اللعبة = ${ms}ms (الافتراضي 500)`,"color:lime;font-size:14px");
+}
+
+function resetGame(){
+  stage=1; hp=100;
+  clearAllEffects();
+  stopAllMusic(); currentChase=null;
+  createWorld(); placeItems(); spawnMonsters(); drawWorld();
+  playRandomBg();
+  console.log("%c✅ تم إعادة تشغيل اللعبة من البداية","color:lime;font-size:14px");
+}
+
+/* ══ INFO ══ */
+function gameInfo(){
+  console.log(`%c
+📊 Game Info:
+  Level: ${stage}
+  HP: ${hp}
+  Position: (${player.x}, ${player.y})
+  Vision: ${vision}
+  Monsters: ${monsters.length}
+  Active Effects: ${Object.keys(activeEffects).join(", ")||"None"}
+  Paused: ${paused}
+  Ghost: ${ghostMode}
+  Invincible: ${invincibleMode}
+  Shield: ${shield}
+  Speed Level: ${speedLevel}
+  Burn Level: ${burnLevel}
+  Bleed Level: ${bleedLevel}
+  Frost Level: ${frostLevel}
+  Poison Level: ${poisonLevel}
+`,"color:cyan;font-family:monospace;font-size:12px");
+}
+
+function listEffects(){
+  console.log("%c⚗️ التأثيرات المتاحة:","color:gold;font-size:14px");
+  for(let name in EFFECT_DEFS){
+    let def=EFFECT_DEFS[name];
+    let hasLevel=["bleeding","poison","burning","frost"].includes(name);
+    console.log(`%c  ${def.emoji} ${name} (${def.good?"✅ جيد":"❌ ضار"})${hasLevel?" — له مستويات 1/2/3":""}`,"color:cyan;font-size:11px");
+  }
+}
+
+/* ══ UPDATE HELP ══ */
+const _oldHelp = help;
+help = function(){
+  _oldHelp();
+  console.log(`%c
+╔══════════════════════════════════════════╗
+║       👑 OWNER COMMANDS                 ║
+╠══════════════════════════════════════════╣
+║  🗺️ WORLD                               ║
+║  clearTrees()       → أزل الأشجار      ║
+║  fillTrees()        → ملء بالأشجار     ║
+║  clearLava()        → أزل الـ Lava     ║
+║  fillLava()         → ملء بالـ Lava    ║
+║  setCell(x,y,type)  → تعديل خلية       ║
+║  getCell(x,y)       → نوع الخلية       ║
+║  setVision(n)       → تحديد الرؤية     ║
+║  reloadMap()        → إعادة الخريطة    ║
+║  whereAmI()         → موقعك الحالي     ║
+║                                          ║
+║  👹 MONSTERS                            ║
+║  listMonsters()     → قائمة الوحوش     ║
+║  setMonsterPos(i,x,y) → حرك وحش       ║
+║  freezeAllMonsters()  → جمد الكل      ║
+║  unfreezeAllMonsters()→ حرر الكل      ║
+║  setGameSpeed(ms)   → سرعة اللعبة      ║
+║                                          ║
+║  👤 PLAYER                              ║
+║  maxHP()            → HP كامل          ║
+║  setShield(true)    → shield دائم      ║
+║  setInvincible(true)→ invincible دائم  ║
+║                                          ║
+║  💰 ITEMS                               ║
+║  giveGold(n)        → أعطِ ذهب         ║
+║  giveDiamond(n)     → أعطِ ماس         ║
+║  setItemCount(t,n)  → تحديد عدد        ║
+║  listItems()        → قائمة العناصر    ║
+║  clearAllItems()    → امسح من الخريطة  ║
+║                                          ║
+║  🎮 GAME                                ║
+║  pauseGame()        → إيقاف            ║
+║  resumeGame()       → تشغيل            ║
+║  resetGame()        → إعادة من البداية ║
+║  gameInfo()         → معلومات اللعبة   ║
+║  listEffects()      → كل التأثيرات     ║
+╚══════════════════════════════════════════╝
+`,"color:gold;font-family:monospace;font-size:12px");
+}
+// --- نظام الـ Server (حفظ التقدم) ---
+function saveGame() {
+    const data = {
+        stage: stage,
+        hp: hp,
+        items: itemCollected
+    };
+    localStorage.setItem('survival_save', JSON.stringify(data));
+}
+
+function loadGame() {
+    const saved = localStorage.getItem('survival_save');
+    if (saved) {
+        const data = JSON.parse(saved);
+        stage = data.stage;
+        hp = data.hp;
+        itemCollected = data.items;
+        ludki("✅ Server", "Data Loaded!", "collect");
+    }
+}
+// دالة شاملة للحركة تعمل مع الكيبورد وأزرار اللمس
+function movePlayer(dx, dy) {
+    if (typeof paused !== 'undefined' && paused) return; // منع الحركة إذا كانت اللعبة متوقفة
+
+    let nx = player.x + dx;
+    let ny = player.y + dy;
+
+    // التأكد من أن الإحداثيات داخل حدود الخريطة وليست شجرة (أو عائق)
+    if (nx >= 0 && nx < W && ny >= 0 && ny < H && world[ny][nx] !== "tree") {
+        player.x = nx;
+        player.y = ny;
+        
+        // استدعاء الدوال الأساسية لتحديث اللعبة (تأكد من مطابقة أسماء هذه الدوال لديك)
+        if (typeof checkCell === 'function') checkCell(nx, ny); 
+        if (typeof moveMonsters === 'function') moveMonsters();
+        if (typeof drawWorld === 'function') drawWorld();
+    }
+}
+
+// ربط أزرار الـ HTML بالأوامر البرمجية
+function setupMobileControls() {
+    const controls = {
+        'btn-up': { x: 0, y: -1 },
+        'btn-down': { x: 0, y: 1 },
+        'btn-left': { x: -1, y: 0 },
+        'btn-right': { x: 1, y: 0 }
+    };
+
+    Object.keys(controls).forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) {
+            // استخدام touchstart لسرعة الاستجابة على الهاتف
+            btn.addEventListener('touchstart', (e) => {
+                e.preventDefault(); // منع المتصفح من عمل زوم أو سكرول
+                movePlayer(controls[id].x, controls[id].y);
+            });
+            // كدعم إضافي للماوس
+            btn.addEventListener('mousedown', (e) => {
+                movePlayer(controls[id].x, controls[id].y);
+            });
+        }
+    });
+}
+
+// تشغيل وظيفة الربط فور تحميل الصفحة
+setupMobileControls();
+// استدعاء عند بدء اللعبة
+loadGame();
+
+/* START */
+createWorld(); placeItems(); spawnMonsters(); drawWorld();
+</script>
+</body>
+</html>
