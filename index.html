@@ -208,7 +208,30 @@ html, body {
     from { text-shadow: 0 0 20px #f00; }
     to { text-shadow: 0 0 50px #f00, 0 0 80px #f44; }
 }
+.ctrl-btn {
+    /* يمنع تحديد النص أو ظهور القوائم المنبثقة عند الضغط المستمر */
+    /* -webkit-user-select:none; */
+    -webkit-touch-callout: none;
+    
+    /* يضمن أن اللمس يذهب مباشرة للزر */
+    pointer-events: auto;
+    touch-action: manipulation;
+}
+.collect-popup {
+    position: absolute;
+    color: #ffd700; /* لون ذهبي */
+    font-weight: bold;
+    font-size: 14px;
+    pointer-events: none;
+    z-index: 1000;
+    animation: floatUp 0.8s ease-out forwards;
+    text-shadow: 1px 1px 2px #000;
+}
 
+@keyframes floatUp {
+    0% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(-30px); opacity: 0; }
+}
 </style>
 </head>
 <body>
@@ -2049,23 +2072,73 @@ function loadGame() {
 }
 // دالة شاملة للحركة تعمل مع الكيبورد وأزرار اللمس
 function movePlayer(dx, dy) {
-    if (typeof paused !== 'undefined' && paused) return; // منع الحركة إذا كانت اللعبة متوقفة
+    if (typeof paused !== 'undefined' && paused) return;
 
     let nx = player.x + dx;
     let ny = player.y + dy;
 
-    // التأكد من أن الإحداثيات داخل حدود الخريطة وليست شجرة (أو عائق)
+    // التأكد من أن الإحداثيات داخل حدود الخريطة وليست عائقاً (شجرة مثلاً)
     if (nx >= 0 && nx < W && ny >= 0 && ny < H && world[ny][nx] !== "tree") {
+        if (item === "gold") {
+    player.gold += 10;
+    world[player.y][player.x] = "floor"; // مسح الذهب
+    
+    // --- تفعيل التنبيه هنا ---
+    showCollectPopup("+10 💰"); 
+    
+    updateHUD();
+} else if (item === "heart") {
+    player.hp = Math.min(100, player.hp + 20);
+    world[player.y][player.x] = "floor";
+    
+    // تنبيه مختلف للقلب
+    showCollectPopup("+20 HP ❤️");
+    
+    updateHUD();
+}
+        // تحريك اللاعب للإحداثيات الجديدة
         player.x = nx;
         player.y = ny;
-        
-        // استدعاء الدوال الأساسية لتحديث اللعبة (تأكد من مطابقة أسماء هذه الدوال لديك)
-        if (typeof checkCell === 'function') checkCell(nx, ny); 
-        if (typeof moveMonsters === 'function') moveMonsters();
+
+        // --- الجزء الأهم: التجميع ---
+        // الحصول على نوع العنصر الموجود في المربع الجديد
+        let item = world[player.y][player.x]; 
+
+        if (item === "gold" || item === "item") {
+            player.gold = (player.gold || 0) + 10; // زيادة الذهب
+            world[player.y][player.x] = "floor"; // مسح العنصر من الخريطة بعد أخذه
+            
+            // تفعيل صوت أو مؤثر بصري عند التجميع
+            if (typeof triggerVFX === 'function') triggerVFX('vfx-collect', 200);
+        }
+
+        // تحديث الرؤية والـ HUD
+        if (typeof updateHUD === 'function') updateHUD();
         if (typeof drawWorld === 'function') drawWorld();
+        
+        // تحريك الوحوش بعد كل خطوة للاعب
+        if (typeof moveMonsters === 'function') moveMonsters();
     }
 }
+function showCollectPopup(text) {
+    const gameContainer = document.getElementById('game');
+    const popup = document.createElement('div');
+    popup.className = 'collect-popup';
+    popup.innerText = text;
 
+    // تحديد مكان اللاعب داخل الـ Game container
+    // نضرب الإحداثيات في حجم الخلية (مثلاً 14px)
+    const cellSize = 14; 
+    popup.style.left = (player.x * cellSize) + 'px';
+    popup.style.top = (player.y * cellSize) + 'px';
+
+    gameContainer.appendChild(popup);
+
+    // إزالة العنصر من الـ DOM بعد انتهاء الأنيميشن
+    setTimeout(() => {
+        popup.remove();
+    }, 800);
+}
 // ربط أزرار الـ HTML بالأوامر البرمجية
 function setupMobileControls() {
     const controls = {
