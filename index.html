@@ -33,17 +33,24 @@ body.vfx-burning #vfxOverlay {
     animation: vfxPulse 0.5s infinite alternate;
 }
 
+/* تأثير الفساد (أرجواني أسود) */
+body.vfx-corruption #vfxOverlay {
+    background: radial-gradient(circle, transparent 50%, rgba(100,0,150,0.5) 100%);
+    animation: vfxPulse 1s infinite alternate;
+}
+
 @keyframes vfxPulse {
     from { opacity: 0.5; }
     to { opacity: 1; }
 }
+
 /* ══ 1. إعدادات الصفحة والخلفية الثابتة ══ */
 html, body {
     margin: 0;
     padding: 0;
     width: 100vw;
     height: 100vh;
-    overflow: hidden; /* منع التمرير نهائياً */
+    overflow: hidden;
     background: radial-gradient(circle, #0b3d0b, #000) !important;
     display: flex;
     flex-direction: column;
@@ -51,8 +58,8 @@ html, body {
     align-items: center;
     color: #cfffcc;
     font-family: Arial, sans-serif;
-    position: fixed; /* منع اهتزاز المتصفح */
-    touch-action: none; /* تعطيل إيماءات المتصفح الافتراضية */
+    position: fixed;
+    touch-action: none;
 }
 
 /* ══ 2. منطقة اللعبة (الماب) ══ */
@@ -64,7 +71,7 @@ html, body {
     border: 2px solid lime;
     overflow: hidden;
     max-width: 95vw;
-    max-height: 60vh; /* ترك مساحة للأزرار والمعلومات */
+    max-height: 60vh;
     box-sizing: border-box;
     z-index: 5;
 }
@@ -112,7 +119,7 @@ html, body {
 
 /* ══ 4. أزرار التحكم (للموبايل) ══ */
 #mobile-controls {
-    display: none; /* تختفي في الكمبيوتر */
+    display: none;
     flex-direction: column;
     align-items: center;
     gap: 10px;
@@ -153,9 +160,10 @@ html, body {
     background-color: #000;
     border-radius: 50px;
     text-align: center;
-    border: 1px solid  white;
+    border: 1px solid white;
     width: 200px;
     transition: opacity 0.15s;
+    padding: 8px;
 }
 .game-alert.show { opacity: 1; }
 
@@ -174,23 +182,23 @@ html, body {
 /* ══ 6. التجاوب مع الهاتف (Responsive) ══ */
 @media (max-width: 768px) {
     #hud {
-        position: relative; /* ينزل تحت الماب */
+        position: relative;
         width: 95vw;
         height: auto;
         border-left: none;
         border-top: 2px solid #0f0;
         margin-top: 10px;
-        order: 2; /* الترتيب الثاني */
+        order: 2;
     }
 
     #game {
         max-height: 45vh;
-        order: 1; /* الماب أولاً */
+        order: 1;
     }
 
     #mobile-controls {
         display: flex;
-        order: 3; /* الأزرار في الأسفل */
+        order: 3;
         margin-bottom: 10px;
     }
 
@@ -200,31 +208,9 @@ html, body {
     }
 }
 
-/* ══ 7. المؤثرات البصرية ══ */
-#vfxOverlay {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 9998;
-}
-
-/* أنيميشن النبض للخسارة */
-@keyframes pulse {
-    from { text-shadow: 0 0 20px #f00; }
-    to { text-shadow: 0 0 50px #f00, 0 0 80px #f44; }
-}
-.ctrl-btn {
-    /* يمنع تحديد النص أو ظهور القوائم المنبثقة عند الضغط المستمر */
-    /* -webkit-user-select:none; */
-    -webkit-touch-callout: none;
-    
-    /* يضمن أن اللمس يذهب مباشرة للزر */
-    pointer-events: auto;
-    touch-action: manipulation;
-}
 .collect-popup {
     position: absolute;
-    color: #ffd700; /* لون ذهبي */
+    color: #ffd700;
     font-weight: bold;
     font-size: 14px;
     pointer-events: none;
@@ -242,7 +228,6 @@ html, body {
 <body>
 
 <div id="game"></div>
-<!-- أزرار التحكم للهاتف -->
 <div id="mobile-controls">
     <div class="row"><button class="ctrl-btn" id="btn-up"><i class="fas fa-chevron-up"></i></button></div>
     <div class="row">
@@ -259,7 +244,6 @@ html, body {
   <div class="bar-wrap"><div class="bar" id="hpBar"></div></div>
   <div id="effectsHud" style="min-height:30px;margin-bottom:6px"></div>
   <hr style="border-color:#0f04;margin:4px 0">
-
   <div id="itemsHud"></div>
 </div>
 
@@ -283,14 +267,14 @@ const game        = document.getElementById("game");
 const levelEl     = document.getElementById("level");
 const hpBar       = document.getElementById("hpBar");
 const itemsHud    = document.getElementById("itemsHud");
-
 const effectsHudEl= document.getElementById("effectsHud");
 
-/* 🖼️ صور الوحوش - حط الـ src هنا */
+/* 🖼️ صور الوحوش */
 const monsterImgs={
-  normal: "",   /* مثال: "./images/monster_normal.png" */
-  fire:   "./IMAGES/9e78383488055714c4d2581476472990.JPG",   /* مثال: "./images/monster_fire.png"   */
-  ice:    "./IMAGES/3f2375a8e947bf2d2a32eb394b74a094.JPG",   /* مثال: "./images/monster_ice.png"    */
+  normal: "",
+  fire:   "./IMAGES/9e78383488055714c4d2581476472990.JPG",
+  ice:    "./IMAGES/3f2375a8e947bf2d2a32eb394b74a094.JPG",
+  corruption: "./IMAGES/corruption_monster.png" // ضع صورة الوحش هنا
 };
 
 let world=[], player={x:1,y:1}, monsters=[];
@@ -300,16 +284,15 @@ let hitCooldown=false, levelCleared=false;
 
 /* ══ EFFECTS ══ */
 let activeEffects={};
+let corruptionLevel=0, corruptionHitCount=0, corruptionInterval=null;
 
 let stepSize=1, magicShieldActive=false, magnetActive=false, strengthActive=false;
-let speedLevel=0;          /* 0=لا يوجد, 1=I, 2=II, 3=III */
-let speedStepsLeft=0;      /* الخطوات المتبقية في الـ hold الحالي */
-let speedHoldActive=false; /* هل زر الحركة مضغوط الآن */
+let speedLevel=0, speedStepsLeft=0, speedHoldActive=false;
 let onLava=false;
 let bleedLevel=0, bleedInterval=null, bleedHitCount=0;
 let poisonLevel=0, poisonHitCount=0;
 let frostLevel=0, frostHitCount=0, frostInterval=null;
-let burnLevel=0; /* هل اللاعب على الـ Lava الآن */
+let burnLevel=0;
 let lavaImmune=false, ghostMode=false, luckyMode=false;
 let invincibleMode=false, weaknessActive=false;
 let poisonInterval=null, burningInterval=null, freezeMonsters=false;
@@ -324,6 +307,11 @@ const EFFECT_DEFS={
     emoji:"🔥",label:"Burning",good:false,
     apply:()=>{},
     remove:()=>{ clearInterval(burningInterval); burningInterval=null; }
+  },
+  corruption:{
+    emoji:"🟣",label:"Corruption",good:false,
+    apply:()=>{},
+    remove:()=>{ clearInterval(corruptionInterval); corruptionInterval=null; corruptionLevel=0; corruptionHitCount=0; }
   },
   speed:{
     emoji:"⚡",label:"Speed",good:true,
@@ -404,6 +392,56 @@ const EFFECT_DEFS={
 
 const QUESTION_EFFECTS=["weakness","magicShield","blind","magnet","reveal","lavaImmunity","ghost","lucky","invincible"];
 
+/* ══ CORRUPTION SYSTEM ══ */
+function getCorruptionDPS(lvl){ return lvl===1?2:lvl===2?5:8; }
+function getLevelDur(lvl){ return lvl===1?10000:lvl===2?8000:6000; }
+
+function startCorruption(){
+  corruptionHitCount++;
+  let newLevel = corruptionLevel;
+  if(hp < 30 || corruptionHitCount >= 3)      newLevel=3;
+  else if(hp < 60 || corruptionHitCount >= 2) newLevel=2;
+  else                                        newLevel=1;
+
+  corruptionLevel = newLevel;
+
+  clearInterval(corruptionInterval);
+  if(activeEffects["corruption"]) clearTimeout(activeEffects["corruption"].timer);
+
+  let dps = getCorruptionDPS(corruptionLevel);
+  let label = `Corruption ${getRoman(corruptionLevel)}`;
+
+  corruptionInterval=setInterval(()=>{
+    if(paused)return;
+    if(!activeEffects["corruption"]){clearInterval(corruptionInterval);corruptionInterval=null;return;}
+    hp-=dps;
+    ludki(`🟣 ${label}`,`−${dps} HP/s`,"damage");
+    if(hp<=0) triggerDeath(`Corrupted to death 🟣 ${getRoman(corruptionLevel)}`);
+    drawWorld();
+  },1000);
+
+  EFFECT_DEFS["corruption"].label=label;
+
+  let corruptionDur=getLevelDur(corruptionLevel);
+  activeEffects["corruption"]={
+    endTime: Date.now()+corruptionDur,
+    timer: setTimeout(()=>{
+      clearInterval(corruptionInterval); corruptionInterval=null;
+      corruptionLevel=0; corruptionHitCount=0;
+      delete activeEffects["corruption"];
+      drawHud();
+    },corruptionDur)
+  };
+  ludki(`🟣 Corruption ${getRoman(corruptionLevel)}`,"Watch out!","damage");
+  drawHud();
+}
+
+function getRoman(lvl){ return lvl===1?"I":lvl===2?"II":"III"; }
+function getBleedDPS(lvl){ return lvl===1?2:lvl===2?4:7; }
+function getPoisonDPS(lvl){ return lvl===1?3:lvl===2?6:10; }
+function getBurnDPS(lvl){ return lvl===1?3:lvl===2?5:8; }
+function getFrostDPS(lvl){ return lvl===1?2:lvl===2?4:7; }
+
 function applyEffect(name){
   const def=EFFECT_DEFS[name];
   if(!def) return;
@@ -411,7 +449,6 @@ function applyEffect(name){
     clearTimeout(activeEffects[name].timer);
     def.remove();
   }
-  /* مدة حسب قوة التأثير */
   const goodDurations={
     freeze:7000, speed:8000, magicShield:10000, magnet:12000,
     reveal:9000, lavaImmunity:15000, ghost:8000, lucky:10000,
@@ -425,7 +462,6 @@ function applyEffect(name){
     : (badDurations[name]  || 5000);
   def.apply();
 
-  /* التأثيرات تتحقق من paused في كل interval */
   if(name==="poison"){
     poisonHitCount++;
     poisonLevel = poisonHitCount>=3?3:poisonHitCount>=2?2:1;
@@ -486,19 +522,19 @@ function applyEffect(name){
 /* ══ SOUNDS ══ */
 const sounds={
   start:   new Audio("./sounds/start.mp3"),
-  /* 🎵 BG tracks - يتم التبديل بينها عشوائياً */
   bg1:     new Audio("./sounds/bg1.m4a"),
   bg2:     new Audio("./sounds/bg2.m4a"),
   bg3:     new Audio("./sounds/bg3.m4a"),
-  /* 🎵 موسيقى الوحش العادي */
+  /* Corruption Monster Music */
+  corruption_layer1: new Audio("./sounds/corruption_layer1.m4a"),
+  corruption_layer2: new Audio("./sounds/corruption_layer2.m4a"),
+  corruption_chase:  new Audio("./sounds/corruption_chase.m4a"),
   normal_layer1: new Audio("./sounds/normal_layer1.m4a"),
   normal_layer2: new Audio("./sounds/normal_layer2.m4a"),
   normal_chase:  new Audio("./sounds/normal_chase.m4a"),
-  /* 🎵 موسيقى الوحش الناري */
   fire_layer1:   new Audio("./sounds/fire_layer1.m4a"),
   fire_layer2:   new Audio("./sounds/fire_layer2.m4a"),
   fire_chase:    new Audio("./sounds/fire_chase.m4a"),
-  /* 🎵 موسيقى الوحش الجليدي */
   ice_layer1:    new Audio("./sounds/ice_layer1.m4a"),
   ice_layer2:    new Audio("./sounds/ice_layer2.m4a"),
   ice_chase:     new Audio("./sounds/ice_chase.m4a"),
@@ -511,49 +547,48 @@ const sounds={
   level:   new Audio("./sounds/won.mp3"),
   gameover:new Audio("./sounds/game_over.mp3"),
   restart: new Audio("./sounds/restart.mp3"),
-  /* chase مدمج في موسيقى الوحوش أعلاه */
   walk:    new Audio("./sounds/walk.mp3"),
   burn:    new Audio("./sounds/burning.m4a"),
   bleed:   new Audio("./sounds/bleeding.m4a"),
+  corruption_sound: new Audio("./sounds/corruption.mp3"),
   effect:  new Audio("./sounds/effect.m4a")
 };
+
 for(let s in sounds) sounds[s].volume=0.6;
 sounds.walk.volume=0.25;
-/* BG tracks loop */
 sounds.bg1.loop=true; sounds.bg1.volume=0.35;
 sounds.bg2.loop=true; sounds.bg2.volume=0.35;
 sounds.bg3.loop=true; sounds.bg3.volume=0.35;
+
 /* Monster music loops */
-const MONSTER_TRACKS=["normal_layer1","normal_layer2","normal_chase",
+const MONSTER_TRACKS=["corruption_layer1","corruption_layer2","corruption_chase",
+                      "normal_layer1","normal_layer2","normal_chase",
                       "fire_layer1","fire_layer2","fire_chase",
                       "ice_layer1","ice_layer2","ice_chase"];
-for(let t of MONSTER_TRACKS){ sounds[t].loop=true; sounds[t].volume=0.6; }
+for(let t of MONSTER_TRACKS){ 
+  sounds[t].loop=true; 
+  sounds[t].volume=0.6; 
+}
 
-/* 🎵 الأغاني: لا تشتغل اثنتان معاً */
 const BG_TRACKS=[sounds.bg1,sounds.bg2,sounds.bg3];
 const MONSTER_MUSIC={
-  normal:{layer1:sounds.normal_layer1, layer2:sounds.normal_layer2, chase:sounds.normal_chase},
+  corruption: {layer1:sounds.corruption_layer1, layer2:sounds.corruption_layer2, chase:sounds.corruption_chase},
+  normal: {layer1:sounds.normal_layer1, layer2:sounds.normal_layer2, chase:sounds.normal_chase},
   fire:  {layer1:sounds.fire_layer1,   layer2:sounds.fire_layer2,   chase:sounds.fire_chase},
   ice:   {layer1:sounds.ice_layer1,    layer2:sounds.ice_layer2,    chase:sounds.ice_chase}
 };
-const MUSIC=[sounds.bg1,sounds.bg2,sounds.bg3,
-             sounds.normal_layer1,sounds.normal_layer2,sounds.normal_chase,
-             sounds.fire_layer1,sounds.fire_layer2,sounds.fire_chase,
-             sounds.ice_layer1,sounds.ice_layer2,sounds.ice_chase];
+
+const MUSIC=[sounds.bg1,sounds.bg2,sounds.bg3].concat(MONSTER_TRACKS.map(t=>sounds[t]));
 let currentBgTrack=sounds.bg1;
 let currentMonsterTrack=null;
 
 function stopAllMusic(){ for(let m of MUSIC){m.pause();m.currentTime=0;} }
-
-/* اختر BG عشوائي وشغله */
 function playRandomBg(){
   stopAllMusic();
   currentBgTrack=BG_TRACKS[Math.floor(Math.random()*BG_TRACKS.length)];
   currentBgTrack.currentTime=0;
   currentBgTrack.play().catch(()=>{});
 }
-
-/* شغل موسيقى الوحش حسب النوع والمسافة */
 function playMonsterMusic(type, dist){
   let group=MONSTER_MUSIC[type]||MONSTER_MUSIC.normal;
   let track;
@@ -567,15 +602,12 @@ function playMonsterMusic(type, dist){
     track.play().catch(()=>{});
   }
 }
-
 function playMusic(s){
   if(!s)return;
   for(let m of MUSIC){ if(m!==s){m.pause();m.currentTime=0;} }
   if(s.paused) s.play().catch(()=>{});
 }
 function resumeBg(){ playMusic(currentBgTrack); }
-
-/* 🔊 SFX: يشتغل فوراً بـ clone بدون تأثير على الأغاني */
 function playSound(s){
   if(!s)return;
   try{
@@ -584,12 +616,10 @@ function playSound(s){
     c.play().catch(()=>{});
   }catch(e){}
 }
-
 function playSoundOnce(s){
   if(!s)return;
   if(s.paused||s.ended){ s.currentTime=0; s.play().catch(()=>{}); }
 }
-
 function stopChase(){
   for(let t of MONSTER_TRACKS){ sounds[t].pause(); sounds[t].currentTime=0; }
   currentMonsterTrack=null;
@@ -607,6 +637,13 @@ function unlockAudio(){
 document.addEventListener("click",unlockAudio,{once:true});
 document.addEventListener("keydown",unlockAudio,{once:true});
 
+/* ══ CAMERA SYSTEM ══ */
+function getCamera(){
+  let cx = Math.max(0, Math.min(W - VIEW_W, Math.floor(player.x - VIEW_W / 2)));
+  let cy = Math.max(0, Math.min(H - VIEW_H, Math.floor(player.y - VIEW_H / 2)));
+  return {cx, cy};
+}
+
 /* ══ ALERT ══ */
 let alertTimer;
 function ludki(title,text,type="normal"){
@@ -621,7 +658,7 @@ function ludki(title,text,type="normal"){
   alertTimer=setTimeout(()=>box.classList.remove("show"),time);
 }
 
-/* ══ ITEMS ══ */
+/* ══ WORLD & ITEMS ══ */
 const itemEmoji={
   gold:"💰",copper:"🟤",silver:"⚪",diamond:"💎",
   iron:"⛓️",obsidian:"🟣",med:"🧪",medkit:"🧰",
@@ -633,7 +670,6 @@ const itemName={
 };
 let itemTarget={},itemCollected={};
 
-/* ══ WORLD ══ */
 function floodFill(wx,wy){
   let visited=new Set(),queue=[[wx,wy]];
   visited.add(wy*W+wx);
@@ -660,7 +696,9 @@ function resetEffects(){
   invincibleMode=false; weaknessActive=false;
   clearInterval(poisonInterval); poisonInterval=null;
   clearInterval(burningInterval); burningInterval=null;
+  clearInterval(corruptionInterval); corruptionInterval=null;
   freezeMonsters=false; vision=5;
+  corruptionLevel=0; corruptionHitCount=0;
 }
 
 function createWorld(){
@@ -712,10 +750,12 @@ function spawnMonsters(){
   let cells=getReachableCells();
   monsters=[];
 
-  /* حدد أنواع الوحوش حسب المستوى */
   let types=["normal"];
-  if(stage>=3) types.push("fire");   /* الناري يظهر من Level 3 */
-  if(stage>=6) types.push("ice");    /* الجليدي يظهر من Level 6 */
+  if(stage>=3) types.push("fire");
+  if(stage>=6) types.push("ice");
+  
+  // الوحش الفاسد كل 5 مستويات
+  if(stage%5===0) types.push("corruption");
 
   for(let type of types){
     let best=null, bestDist=0;
@@ -726,9 +766,9 @@ function spawnMonsters(){
       let farFromOthers=monsters.every(m=>Math.abs(m.x-cell.x)+Math.abs(m.y-cell.y)>10);
       if(d>20&&farFromOthers){bestDist=d;best=cell;}
     }
-    if(best) monsters.push({x:best.x,y:best.y,type,cd1:0,cd2:0});
+    if(best) monsters.push({x:best.x,y:best.y,type,cd1:0,cd2:0,cd3:0,traps:0,xrayActive:false,xrayTimer:null});
   }
-  if(monsters.length===0) monsters=[{x:W-2,y:H-2,type:"normal",cd1:0,cd2:0}];
+  if(monsters.length===0) monsters=[{x:W-2,y:H-2,type:"normal",cd1:0,cd2:0,cd3:0,traps:0,xrayActive:false,xrayTimer:null}];
 }
 
 function placeItems(){
@@ -755,24 +795,106 @@ function placeItems(){
   for(let i=0;i<5;i++) {let c=randomEmptyCell(cells);if(c)world[c.y][c.x]="freeze";}
   for(let i=0;i<6;i++) {let c=randomEmptyCell(cells);if(c)world[c.y][c.x]="poison_item";}
   for(let i=0;i<8;i++) {let c=randomEmptyCell(cells);if(c)world[c.y][c.x]="bandage";}
-
-  if(active.includes("obsidian")){
-    for(let y=0;y<H;y++) for(let x=0;x<W;x++){
-      if(world[y][x]==="obsidian"){
-        let nb=[[x+1,y],[x-1,y],[x,y+1],[x,y-1],[x+1,y+1],[x-1,y-1],[x+1,y-1],[x-1,y+1]];
-        for(let[nx,ny] of nb)
-          if(nx>=0&&ny>=0&&nx<W&&ny<H&&world[ny][nx]==="empty"&&Math.random()<0.6)
-            world[ny][nx]="lava";
-      }
-    }
-  }
 }
 
-/* ══ CAMERA ══ */
-function getCamera(){
-  let cx=Math.max(0,Math.min(W-VIEW_W,Math.floor(player.x-VIEW_W/2)));
-  let cy=Math.max(0,Math.min(H-VIEW_H,Math.floor(player.y-VIEW_H/2)));
-  return{cx,cy};
+/* ══ CORRUPTION MONSTER ABILITIES ══ */
+function corruptionSpikes(monster){
+  if(monster.cd1 > 0) return;
+  monster.cd1 = 40; // 20s cooldown
+  
+  // أنماط مختلفة للـ spikes
+  const patterns = [
+    // مستقيم أفقي
+    [[0,0],[1,0],[2,0],[3,0],[4,0],[-1,0],[-2,0],[-3,0],[-4,0]],
+    // قطري
+    [[0,0],[1,1],[2,2],[3,3],[4,4],[-1,-1],[-2,-2],[-3,-3],[-4,-4]],
+    // wavy (موجي)
+    [[0,0],[1,1],[2,0],[3,1],[4,0],[-1,-1],[-2,0],[-3,-1],[-4,0]],
+    // دائري
+    [[0,0],[1,0],[1,1],[0,1],[-1,1],[-1,0],[-1,-1],[0,-1],[1,-1],[2,0],[2,-1],[2,1]],
+    // مستقيم عمودي
+    [[0,0],[0,1],[0,2],[0,3],[0,4],[0,-1],[0,-2],[0,-3],[0,-4]]
+  ];
+  
+  let pattern = patterns[Math.floor(Math.random() * patterns.length)];
+  let positions = [];
+  
+  for(let [dx, dy] of pattern){
+    let sx = monster.x + dx, sy = monster.y + dy;
+    if(sx>=0 && sy>=0 && sx<W && sy<H && world[sy][sx] !== "tree"){
+      positions.push({x:sx, y:sy});
+    }
+  }
+  
+  // تدريجياً تظهر الـ spikes (مثل قدرة John Doe)
+  let delay = 0;
+  positions.forEach((pos, i) => {
+    setTimeout(() => {
+      if(world[pos.y][pos.x] === "empty") {
+        world[pos.y][pos.x] = "spike";
+        drawWorld();
+      }
+    }, i * 150);
+  });
+  
+  // إزالة الـ spikes بعد 15s
+  setTimeout(() => {
+    positions.forEach(pos => {
+      if(world[pos.y][pos.x] === "spike") world[pos.y][pos.x] = "empty";
+    });
+    drawWorld();
+  }, 15000);
+  
+  ludki("🗡️ Corruption Spikes!", "Danger! 25 spikes!", "damage");
+}
+
+function corruptionTrap(monster){
+  if(monster.cd2 > 0 || monster.traps >= 3) return;
+  monster.cd2 = 60; // 30s cooldown
+  monster.traps++;
+  
+  let placed = false;
+  // وضع فخ في المنطقة حول الوحش
+  for(let radius=1; radius<=2 && !placed; radius++){
+    for(let dx=-radius; dx<=radius; dx++){
+      for(let dy=-radius; dy<=radius; dy++){
+        if(Math.abs(dx) !== radius && Math.abs(dy) !== radius) continue;
+        let tx = monster.x + dx, ty = monster.y + dy;
+        if(tx>=0 && ty>=0 && tx<W && ty<H && world[ty][tx] === "empty"){
+          world[ty][tx] = "trap";
+          placed = true;
+          break;
+        }
+      }
+      if(placed) break;
+    }
+  }
+  
+  drawWorld();
+  ludki("🟫 Corruption Trap!", "A trap has been set!", "damage");
+}
+
+function corruptionXray(monster){
+  if(monster.cd3 > 0) return;
+  monster.cd3 = 60; // 30s cooldown
+  
+  monster.xrayActive = true;
+  ludki("🚨 Dr.G Alert", "Corrupted Monster seeing you for 10s!", "damage");
+  playSound(sounds.corruption_sound);
+  
+  monster.xrayTimer = setTimeout(() => {
+    monster.xrayActive = false;
+    ludki("✅ X-ray Ended", "You are safe now!", "normal");
+  }, 10000);
+}
+
+function isMonsterCanSee(monster, playerX, playerY){
+  // إذا كان الـ X-Ray فعال، يرى اللاعب مهما كان
+  if(monster.xrayActive) return true;
+  
+  // وإلا يرى فقط إذا كان قريب بما يكفي
+  let dist = Math.abs(monster.x - playerX) + Math.abs(monster.y - playerY);
+  return dist <= 14;
 }
 
 /* ══ HUD ══ */
@@ -792,11 +914,11 @@ function drawHud(){
 }
 setInterval(drawHud,500);
 
-/* ══ DRAW ══ */
+/* ══ DRAW WORLD ══ */
 function drawWorld(){
   game.innerHTML="";
   game.style.gridTemplateColumns=`repeat(${VIEW_W},14px)`;
-  const{cx,cy}=getCamera();
+  const {cx, cy} = getCamera();
 
   for(let row=0;row<VIEW_H;row++){
     for(let col=0;col<VIEW_W;col++){
@@ -805,29 +927,39 @@ function drawWorld(){
       div.classList.add("cell");
       let visible=Math.sqrt((player.x-x)**2+(player.y-y)**2)<=vision;
 
-      if(visible){
+      if(visible && x>=0 && x<W && y>=0 && y<H){
         let cell=world[y][x];
         if(cell==="lava")        {div.style.background="rgb(180,40,0)";div.style.boxShadow="inset 0 0 4px rgba(255,100,0,0.8)";}
+        else if(cell==="spike")  {div.style.background="rgb(30,0,50)";div.textContent="🗡️";}
+        else if(cell==="trap")   {div.style.background="rgb(20,20,20)";div.textContent="🟫";}
         else if(cell==="freeze") {div.style.background="rgb(0,80,160)";}
         else if(cell==="poison_item"){div.style.background="rgb(40,80,20)";}
         else                     {div.style.background="rgb(36,129,36)";}
 
         if(player.x===x&&player.y===y)     div.textContent="🧍";
-        else if(cell==="tree")              div.textContent="🌲";
-        else if(cell==="lava")              div.textContent="🔥";
-        else if(cell==="med")               div.textContent="🧪";
-        else if(cell==="medkit")            div.textContent="🧰";
-        else if(cell==="energy")            div.textContent="🥤";
-        else if(cell==="question")          div.textContent="❓";
-        else if(cell==="freeze")            div.textContent="🧊";
-        else if(cell==="poison_item")       div.textContent="☠️";
-        else if(cell==="bandage")              div.textContent="🩹";
-        else if(itemEmoji[cell])            div.textContent=itemEmoji[cell];
+        else if(cell==="tree")             div.textContent="🌲";
+        else if(cell==="lava")             div.textContent="🔥";
+        else if(cell==="spike")            div.textContent="🗡️";
+        else if(cell==="trap")             div.textContent="🟫";
+        else if(cell==="med")              div.textContent="🧪";
+        else if(cell==="medkit")           div.textContent="🧰";
+        else if(cell==="energy")           div.textContent="🥤";
+        else if(cell==="question")         div.textContent="❓";
+        else if(cell==="freeze")           div.textContent="🧊";
+        else if(cell==="poison_item")      div.textContent="☠️";
+        else if(cell==="bandage")          div.textContent="🩹";
+        else if(itemEmoji[cell])           div.textContent=itemEmoji[cell];
+        
         monsters.forEach(m=>{
           if(m.x===x&&m.y===y){
             div.style.background="transparent";
-            /* لو في صورة للوحش استخدمها، غير كده استخدم emoji */
-            if(m.type==="fire" && monsterImgs.fire){
+            if(m.type==="corruption" && monsterImgs.corruption){
+              div.style.backgroundImage=`url('${monsterImgs.corruption}')`;
+              div.style.backgroundSize="contain";
+              div.style.backgroundRepeat="no-repeat";
+              div.style.backgroundPosition="center";
+              div.textContent="";
+            } else if(m.type==="fire" && monsterImgs.fire){
               div.style.backgroundImage=`url('${monsterImgs.fire}')`;
               div.style.backgroundSize="contain";
               div.style.backgroundRepeat="no-repeat";
@@ -839,23 +971,11 @@ function drawWorld(){
               div.style.backgroundRepeat="no-repeat";
               div.style.backgroundPosition="center";
               div.textContent="";
-            } else if(m.type==="normal" && monsterImgs.normal){
-              div.style.backgroundImage=`url('${monsterImgs.normal}')`;
-              div.style.backgroundSize="contain";
-              div.style.backgroundRepeat="no-repeat";
-              div.style.backgroundPosition="center";
-              div.textContent="";
             } else {
-              div.textContent=m.type==="fire"?monsterImgs.fire:m.type==="ice"?monsterImgs:"👹";
+              div.textContent=m.type==="corruption"?"🟣":m.type==="fire"?"🔥":"👹";
             }
           }
         });
-        if(cell==="firezone"){div.style.background="rgb(200,60,0)";div.textContent="🔸";}
-        if(cell==="icezone") {div.style.background="rgb(0,100,200)";div.textContent="🔹";}
-        if(cell==="scorch")  {div.style.background="rgb(80,30,0)";div.textContent="💨";}
-        if(cell==="icescorch"){div.style.background="rgb(0,60,120)";div.textContent="💨";}
-        if(cell==="fireball") div.textContent="🔥";
-        if(cell==="iceball")  div.textContent="❄️";
       }else{
         div.style.background="rgb(30,30,30)";
       }
@@ -867,72 +987,268 @@ function drawWorld(){
   hpBar.style.width=hp+"%";
   hpBar.style.background=hp>60?"lime":hp>30?"orange":"red";
 
-
   let hud="";
   for(let k in itemTarget) hud+=`${itemEmoji[k]} ${itemName[k]}: ${itemCollected[k]||0}/${itemTarget[k]}<br>`;
   itemsHud.innerHTML=hud;
   drawHud();
 }
 
-/* ══ BLEEDING SYSTEM ══ */
-function getRoman(lvl){ return lvl===1?"I":lvl===2?"II":"III"; }
-function getBleedDPS(lvl){ return lvl===1?2:lvl===2?4:7; }
-function getPoisonDPS(lvl){ return lvl===1?3:lvl===2?6:10; }
-function getBurnDPS(lvl){ return lvl===1?3:lvl===2?5:8; }
-function getLevelDur(lvl){ return lvl===1?10000:lvl===2?8000:6000; }
-function getFrostDPS(lvl){ return lvl===1?2:lvl===2?4:7; }
+/* ══ MOVEMENT ══ */
+const keysHeld={};
+document.addEventListener("keydown",e=>{ keysHeld[e.key]=true; });
+document.addEventListener("keyup",e=>{ keysHeld[e.key]=false; });
 
-function startBleeding(){
-  bleedHitCount++;
+let speedHoldInterval=null;
+function startSpeedHold(dx,dy){
+  if(speedHoldInterval) return;
+  let units=speedLevel===1?4:speedLevel===2?7:12;
+  let stepsInHold=0;
+  speedHoldInterval=setInterval(()=>{
+    if(paused||!activeEffects["speed"]){
+      clearInterval(speedHoldInterval); speedHoldInterval=null; return;
+    }
+    let anyHeld=keysHeld["ArrowUp"]||keysHeld["ArrowDown"]||keysHeld["ArrowLeft"]||keysHeld["ArrowRight"]
+               ||keysHeld["w"]||keysHeld["s"]||keysHeld["a"]||keysHeld["d"]
+               ||keysHeld["W"]||keysHeld["S"]||keysHeld["A"]||keysHeld["D"];
+    if(!anyHeld){ clearInterval(speedHoldInterval); speedHoldInterval=null; stepsInHold=0; return; }
 
-  /* رفع المستوى */
-  let newLevel = bleedLevel;
-  if(hp < 30 || bleedHitCount >= 3)      newLevel=3;
-  else if(hp < 60 || bleedHitCount >= 2) newLevel=2;
-  else                                    newLevel=1;
+    if(stepsInHold>=units){
+      clearInterval(speedHoldInterval); speedHoldInterval=null; stepsInHold=0; return;
+    }
 
-  bleedLevel = newLevel;
+    let nx=player.x+dx, ny=player.y+dy;
+    if(nx>=0&&ny>=0&&nx<W&&ny<H&&(world[ny][nx]!=="tree"||ghostMode)){
+      player.x=nx;player.y=ny;
+      playSoundOnce(sounds.walk);
+      updateBurningTimer();
+      handleCell(nx,ny);
+      drawWorld();
+    }
+    stepsInHold++;
+  },80);
+}
 
-  /* أوقف الـ interval القديم */
-  clearInterval(bleedInterval);
-  if(activeEffects["bleeding"]) clearTimeout(activeEffects["bleeding"].timer);
+document.addEventListener("keydown",e=>{
+  if(e.repeat && !activeEffects["speed"]) return;
 
-  let dps = getBleedDPS(bleedLevel);
-  let label = `Bleeding ${getRoman(bleedLevel)}`;
+  if(e.key==="Escape"){
+    paused=!paused;
+    if(paused){
+      stopAllMusic();
+      clearInterval(window._gameLoop); window._gameLoop=null;
+    } else {
+      if(currentChase) playMonsterMusic(currentChase, closestDistCache||99);
+      else resumeBg();
+      window._gameLoop=setInterval(gameLoop,500);
+    }
+    ludki(paused?"PAUSED":"RESUME",paused?"Game Stopped":"Game Running","pause");
+    return;
+  }
+  if(paused)return;
 
-  /* interval: ضرر كل ثانية */
-  bleedInterval=setInterval(()=>{
+  let dx=0,dy=0;
+  if(e.key==="ArrowUp"   ||e.key==="w"||e.key==="W") dy=-1;
+  else if(e.key==="ArrowDown" ||e.key==="s"||e.key==="S") dy=1;
+  else if(e.key==="ArrowLeft" ||e.key==="a"||e.key==="A") dx=-1;
+  else if(e.key==="ArrowRight"||e.key==="d"||e.key==="D") dx=1;
+  else return;
+
+  let movesThisPress=1;
+  if(activeEffects["speed"] && speedStepsLeft>0){
+    movesThisPress=1;
+    speedStepsLeft--;
+    if(speedStepsLeft<=0){
+      let units=speedLevel===1?4:speedLevel===2?7:12;
+      speedStepsLeft=units;
+    }
+  }
+
+  for(let step=0;step<movesThisPress;step++){
+    let nx=player.x+dx, ny=player.y+dy;
+    if(nx<0||ny<0||nx>=W||ny>=H) break;
+    if(world[ny][nx]==="tree"&&!ghostMode) break;
+    
+    player.x=nx; player.y=ny;
+    playSoundOnce(sounds.walk);
+    updateBurningTimer();
+    handleCell(nx,ny);
+  }
+  drawWorld();
+});
+
+/* Mobile Controls */
+function setupMobileControls() {
+    const controls = {
+        'btn-up': { x: 0, y: -1 },
+        'btn-down': { x: 0, y: 1 },
+        'btn-left': { x: -1, y: 0 },
+        'btn-right': { x: 1, y: 0 }
+    };
+
+    Object.keys(controls).forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) {
+            btn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                movePlayerMobile(controls[id].x, controls[id].y);
+            });
+            btn.addEventListener('mousedown', (e) => {
+                movePlayerMobile(controls[id].x, controls[id].y);
+            });
+        }
+    });
+}
+
+function movePlayerMobile(dx, dy) {
+    if (paused) return;
+    
+    let nx = player.x + dx, ny = player.y + dy;
+    if (nx >= 0 && nx < W && ny >= 0 && ny < H && (world[ny][nx] !== "tree" || ghostMode)) {
+        player.x = nx;
+        player.y = ny;
+        playSoundOnce(sounds.walk);
+        updateBurningTimer();
+        handleCell(nx, ny);
+        drawWorld();
+    }
+}
+
+setupMobileControls();
+
+function handleCell(nx,ny){
+  let cell=world[ny][nx];
+
+  if(cell==="spike"){
+    startCorruption();
+    ludki("🗡️ Spike!","Corruption II!","damage");
+    playSound(sounds.corruption_sound);
+  }
+  else if(cell==="trap"){
+    startCorruption();
+    world[ny][nx]="empty"; // الفخ يختفي
+    ludki("🟫 Trap!","Corruption III!","damage");
+    playSound(sounds.corruption_sound);
+  }
+  else if(cell==="med"){
+    world[ny][nx]="empty";
+    hp=Math.min(100,hp+15);
+    for(let eff of ["weakness","poison"]){
+      if(activeEffects[eff]){
+        clearTimeout(activeEffects[eff].timer);
+        EFFECT_DEFS[eff].remove();
+        delete activeEffects[eff];
+      }
+    }
+    applyEffect("strength");
+    ludki("🧪 MED","+15 HP | Strength 💪","heal");
+    playSound(sounds.med);
+  }
+  else if(cell==="medkit"){
+    world[ny][nx]="empty"; hp=100;
+    applyEffect("shield");
+    ludki("🧰 MEDKIT","Full HP + Shield 🛡️","collect");
+    playSound(sounds.medkit);
+  }
+  else if(cell==="bandage"){
+    let needsHealing = hp < 100 || activeEffects["bleeding"] || activeEffects["burning"] || activeEffects["corruption"];
+    if(needsHealing){
+      world[ny][nx]="empty";
+      hp=Math.min(100,hp+10);
+      for(let eff of ["bleeding","burning","corruption"]){
+        if(activeEffects[eff]){
+          clearTimeout(activeEffects[eff].timer);
+          EFFECT_DEFS[eff].remove();
+          delete activeEffects[eff];
+        }
+      }
+      clearInterval(corruptionInterval); corruptionInterval=null;
+      ludki("🩹 BANDAGE","+10 HP | Effects cleared","heal");
+      playSound(sounds.medkit);
+    }
+  }
+  else if(cell==="energy"){
+    world[ny][nx]="empty";
+    if(activeEffects["speed"]) speedLevel=Math.min(3,speedLevel+1);
+    else speedLevel=1;
+    EFFECT_DEFS["speed"].label=`Speed ${getRoman(speedLevel)}`;
+    let units=speedLevel===1?4:speedLevel===2?7:12;
+    speedStepsLeft=units;
+    applyEffect("speed");
+    playSound(sounds.effect);
+  }
+  else if(cell==="question"){
+    world[ny][nx]="empty";
+    let eff=QUESTION_EFFECTS[Math.floor(Math.random()*QUESTION_EFFECTS.length)];
+    applyEffect(eff);
+    playSound(sounds.effect);
+  }
+  else if(cell==="freeze"){
+    world[ny][nx]="empty";
+    applyEffect("freeze");
+    playSound(sounds.effect);
+  }
+  else if(cell==="poison_item"){
+    world[ny][nx]="empty";
+    applyEffect("poison");
+    playSound(sounds.effect);
+  }
+  else if(itemTarget[cell]){
+    world[ny][nx]="empty";
+    let gain=luckyMode?2:1;
+    itemCollected[cell]=(itemCollected[cell]||0)+gain;
+    ludki("COLLECT",`+${gain} ${itemName[cell]||cell}`,"collect");
+    if(cell==="gold")         playSound(sounds.gold);
+    else if(cell==="diamond") playSound(sounds.diamond);
+    else                      playSound(sounds.collect);
+  }
+}
+
+/* ══ BURNING SYSTEM ══ */
+const BURN_DURATION = 7000;
+
+function startBurning(){
+  burnLevel = Math.min(3, burnLevel+1);
+  let bdps = getBurnDPS(burnLevel);
+  let bdur = onLava ? 99999999 : getLevelDur(burnLevel);
+
+  EFFECT_DEFS["burning"].label=`Burning ${getRoman(burnLevel)}`;
+
+  clearInterval(burningInterval);
+  if(activeEffects["burning"]) clearTimeout(activeEffects["burning"].timer);
+
+  burningInterval=setInterval(()=>{
     if(paused)return;
-    if(!activeEffects["bleeding"]){clearInterval(bleedInterval);bleedInterval=null;return;}
-    hp-=dps;
-    ludki(`🩸 ${label}`,`−${dps} HP/s`,"damage");
-    playSound(sounds.bleed);
-    if(hp<=0) triggerDeath(`Bled out 🩸 ${getRoman(bleedLevel)}`);
+    if(!activeEffects["burning"]){clearInterval(burningInterval);burningInterval=null;return;}
+    hp-=bdps;
+    ludki(`🔥 Burning ${getRoman(burnLevel)}`,`−${bdps} HP/s`,"damage");
+    playSound(sounds.burn);
+    if(hp<=0) triggerDeath(`Burned to death 🔥 ${getRoman(burnLevel)}`);
     drawWorld();
   },1000);
 
-  /* تحديث EFFECT_DEFS label */
-  EFFECT_DEFS["bleeding"].emoji="🩸";
-  EFFECT_DEFS["bleeding"].label=label;
-
-  /* تسجيل في activeEffects مع 10 ثواني */
-  let bleedDur=getLevelDur(bleedLevel);
-  activeEffects["bleeding"]={
-    endTime: Date.now()+bleedDur,
-    timer: setTimeout(()=>{
-      clearInterval(bleedInterval); bleedInterval=null;
-      bleedLevel=0; bleedHitCount=0;
-      delete activeEffects["bleeding"];
+  activeEffects["burning"]={
+    endTime:Date.now()+bdur,
+    timer:setTimeout(()=>{
+      clearInterval(burningInterval); burningInterval=null;
+      burnLevel=0;
+      delete activeEffects["burning"];
       drawHud();
-    },bleedDur)
+    },bdur)
   };
+  ludki(`🔥 Burning ${getRoman(burnLevel)}`,"Watch out!","damage");
   drawHud();
 }
 
+function updateBurningTimer(){
+  onLava=(world[player.y]&&world[player.y][player.x]==="lava");
+  if(!onLava&&burnLevel>0&&(!activeEffects["burning"]||!burningInterval)){
+    startBurning();
+  }
+}
 
 /* ══ FROST SYSTEM ══ */
 function startFrost(level){
-  frostHitCount++;
+  let frostHitCount=0;
   frostLevel = Math.min(3, level||frostHitCount);
   let fdps = getFrostDPS(frostLevel);
   let fdur = getLevelDur(frostLevel);
@@ -962,459 +1278,60 @@ function startFrost(level){
   drawHud();
 }
 
-/* ══ DEATH ══ */
-let currentChase=null;
-let closestDistCache=99;
-function triggerDeath(reason){
-  clearInterval(bleedInterval); bleedInterval=null; bleedLevel=0; bleedHitCount=0;
-  clearInterval(poisonInterval); poisonInterval=null; poisonLevel=0; poisonHitCount=0;
-  clearInterval(frostInterval); frostInterval=null; frostLevel=0; frostHitCount=0;
-  burnLevel=0;
-  if(activeEffects["bleeding"]){ clearTimeout(activeEffects["bleeding"].timer); delete activeEffects["bleeding"]; }
-  hp=100; hitCooldown=false; levelCleared=false;
-  paused=true;
-  stopAllMusic(); currentChase=null;
-  playSound(sounds.gameover);
-  document.getElementById("gameOverReason").textContent=reason;
-  document.getElementById("gameOverScreen").classList.add("show");
-}
+/* ══ BLEEDING SYSTEM ══ */
+function startBleeding(){
+  bleedHitCount++;
 
-document.getElementById("retryBtn").addEventListener("click",()=>{
-  document.getElementById("gameOverScreen").classList.remove("show");
-  paused=false;
-  playSound(sounds.restart);
-  createWorld(); placeItems(); spawnMonsters(); drawWorld();
-  resumeBg();
-});
+  let newLevel = bleedLevel;
+  if(hp < 30 || bleedHitCount >= 3)      newLevel=3;
+  else if(hp < 60 || bleedHitCount >= 2) newLevel=2;
+  else                                    newLevel=1;
 
-/* ══ LAVA BURNING ══ */
-const BURN_DURATION = 7000; /* مدة الحرق بعد الخروج من الـ Lava */
+  bleedLevel = newLevel;
 
-function startBurning(){
-  /* رفع مستوى الحرق كلما دخل Lava */
-  burnLevel = Math.min(3, burnLevel+1);
-  let bdps = getBurnDPS(burnLevel);
-  let bdur = onLava ? 99999999 : getLevelDur(burnLevel);
+  clearInterval(bleedInterval);
+  if(activeEffects["bleeding"]) clearTimeout(activeEffects["bleeding"].timer);
 
-  EFFECT_DEFS["burning"].label=`Burning ${getRoman(burnLevel)}`;
+  let dps = getBleedDPS(bleedLevel);
+  let label = `Bleeding ${getRoman(bleedLevel)}`;
 
-  if(activeEffects["burning"]) clearTimeout(activeEffects["burning"].timer);
+  bleedInterval=setInterval(()=>{
+    if(paused)return;
+    if(!activeEffects["bleeding"]){clearInterval(bleedInterval);bleedInterval=null;return;}
+    hp-=dps;
+    ludki(`🩸 ${label}`,`−${dps} HP/s`,"damage");
+    playSound(sounds.bleed);
+    if(hp<=0) triggerDeath(`Bled out 🩸 ${getRoman(bleedLevel)}`);
+    drawWorld();
+  },1000);
 
-  if(!burningInterval){
-    burningInterval=setInterval(()=>{
-      if(paused)return;
-      if(!activeEffects["burning"]){clearInterval(burningInterval);burningInterval=null;return;}
-      hp-=bdps;
-      ludki(`🔥 Burning ${getRoman(burnLevel)}`,`−${bdps} HP/2s`,"damage");
-      playSound(sounds.burn);
-      if(hp<=0) triggerDeath(`Burned to death 🔥 ${getRoman(burnLevel)}`);
-      drawWorld();
-    },2000);
-  }
+  EFFECT_DEFS["bleeding"].label=label;
 
-  activeEffects["burning"]={
-    endTime: onLava ? Date.now()+99999999 : Date.now()+getLevelDur(burnLevel),
+  let bleedDur=getLevelDur(bleedLevel);
+  activeEffects["bleeding"]={
+    endTime: Date.now()+bleedDur,
     timer: setTimeout(()=>{
-      clearInterval(burningInterval); burningInterval=null;
-      burnLevel=0;
-      delete activeEffects["burning"];
+      clearInterval(bleedInterval); bleedInterval=null;
+      bleedLevel=0; bleedHitCount=0;
+      delete activeEffects["bleeding"];
       drawHud();
-    }, bdur)
+    },bleedDur)
   };
   drawHud();
 }
 
-function updateBurningTimer(){
-  /* يُستدعى كل ما تغير موقع اللاعب */
-  let cell = world[player.y]?.[player.x];
-  let wasOnLava = onLava;
-  onLava = (cell === "lava");
+let currentChase=null;
+let closestDistCache=99;
 
-  if(activeEffects["burning"]){
-    if(onLava){
-      /* عاد للـ Lava: أعد التايمر للانهاية */
-      clearTimeout(activeEffects["burning"].timer);
-      activeEffects["burning"].endTime = Date.now()+99999999;
-      activeEffects["burning"].timer = setTimeout(()=>{
-        clearInterval(burningInterval); burningInterval=null;
-        delete activeEffects["burning"];
-        drawHud();
-      }, 99999999);
-      drawHud();
-    } else if(wasOnLava && !onLava){
-      /* خرج من الـ Lava: ابدأ العد التنازلي */
-      clearTimeout(activeEffects["burning"].timer);
-      activeEffects["burning"].endTime = Date.now()+BURN_DURATION;
-      activeEffects["burning"].timer = setTimeout(()=>{
-        clearInterval(burningInterval); burningInterval=null;
-        delete activeEffects["burning"];
-        drawHud();
-      }, BURN_DURATION);
-      drawHud();
-    }
-  }
+function gameLoop(){
+  moveMonsters();
+  checkWin();
+  updateVFX();
 }
 
-
-/* ══ MONSTER TYPES ══ */
-/*
-  type: "normal" | "fire" | "ice"
-  x,y: position
-  cooldown1, cooldown2: ability cooldowns
-*/
-
-/* Fire monster ability 1: Flame Surge - scattered fire zones around monster */
-function flameSurge(monster){
-  if(monster.cd1 > 0) return;
-  monster.cd1 = 30; /* 30 ticks = 15s */
-  let positions=[];
-  let dirs=[[-4,0],[4,0],[0,-4],[0,4],[-3,-2],[3,2],[-2,3],[2,-3]];
-  for(let[dx,dy] of dirs){
-    let fx=monster.x+dx, fy=monster.y+dy;
-    if(fx>=0&&fy>=0&&fx<W&&fy<H&&world[fy][fx]!=="tree"&&world[fy][fx]!=="lava"){
-      world[fy][fx]="firezone";
-      positions.push({x:fx,y:fy});
-    }
-  }
-  /* Remove firezone after 20s */
-  setTimeout(()=>{
-    for(let p of positions){
-      if(world[p.y][p.x]==="firezone") world[p.y][p.x]="empty";
-    }
-  },20000);
-}
-
-/* Fire monster ability 2: Fireball - straight projectile, no tracking */
-function fireFireball(monster){
-  if(monster.cd2 > 0) return;
-  monster.cd2 = 20;
-  let dirs=[[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[1,1],[-1,1],[1,-1]];
-  let dir=dirs[Math.floor(Math.random()*dirs.length)];
-  let bx=monster.x, by=monster.y;
-
-  let interval=setInterval(()=>{
-    if(paused) return; /* توقف لو الـ pause فعال */
-
-    bx+=dir[0]; by+=dir[1];
-    if(bx<0||by<0||bx>=W||by>=H){ clearInterval(interval); return; }
-
-    /* خبطت شجرة → الشجرة تختفي + أثر النار */
-    if(world[by][bx]==="tree"){
-      clearInterval(interval);
-      world[by][bx]="scorch";
-      setTimeout(()=>{ if(world[by][bx]==="scorch") world[by][bx]="empty"; },10000);
-      drawWorld();
-      return;
-    }
-
-    /* خبطت اللاعب مباشرة → Burning III */
-    if(bx===player.x && by===player.y){
-      clearInterval(interval);
-      burnLevel=2; startBurning();
-      ludki("🔥 FIREBALL","Direct Hit! Burning III","damage");
-      playSound(sounds.burn);
-      if(hp<=0) triggerDeath("Killed by Fireball 🔥");
-      return;
-    }
-
-    /* الكرة تتحرك */
-    if(world[by][bx]==="empty") world[by][bx]="fireball";
-    setTimeout(()=>{ if(world[by][bx]==="fireball") world[by][bx]="empty"; drawWorld(); },200);
-    drawWorld();
-  },150);
-}
-
-/* Ice monster ability 1: Ice Storm - scattered ice zones */
-function iceStorm(monster){
-  if(monster.cd1 > 0) return;
-  monster.cd1 = 30;
-  let positions=[];
-  let dirs=[[-4,0],[4,0],[0,-4],[0,4],[-3,-2],[3,2],[-2,3],[2,-3]];
-  for(let[dx,dy] of dirs){
-    let fx=monster.x+dx, fy=monster.y+dy;
-    if(fx>=0&&fy>=0&&fx<W&&fy<H&&world[fy][fx]!=="tree"&&world[fy][fx]!=="lava"){
-      world[fy][fx]="icezone";
-      positions.push({x:fx,y:fy});
-    }
-  }
-  setTimeout(()=>{
-    for(let p of positions){
-      if(world[p.y][p.x]==="icezone") world[p.y][p.x]="empty";
-    }
-  },20000);
-}
-
-/* Ice monster ability 2: Ice Bolt - straight projectile, no tracking */
-function fireIceBolt(monster){
-  if(monster.cd2 > 0) return;
-  monster.cd2 = 20;
-  let dirs=[[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[1,1],[-1,1],[1,-1]];
-  let dir=dirs[Math.floor(Math.random()*dirs.length)];
-  let bx=monster.x, by=monster.y;
-
-  let interval=setInterval(()=>{
-    if(paused) return; /* توقف لو الـ pause فعال */
-
-    bx+=dir[0]; by+=dir[1];
-    if(bx<0||by<0||bx>=W||by>=H){ clearInterval(interval); return; }
-
-    /* خبطت شجرة → الشجرة تختفي + أثر الجليد */
-    if(world[by][bx]==="tree"){
-      clearInterval(interval);
-      world[by][bx]="icescorch";
-      setTimeout(()=>{ if(world[by][bx]==="icescorch") world[by][bx]="empty"; },10000);
-      drawWorld();
-      return;
-    }
-
-    /* خبطت اللاعب مباشرة → Frost III */
-    if(bx===player.x && by===player.y){
-      clearInterval(interval);
-      startFrost(3);
-      ludki("❄️ ICE BOLT","Direct Hit! Frost III","damage");
-      if(hp<=0) triggerDeath("Killed by Ice Bolt ❄️");
-      return;
-    }
-
-    /* الكرة تتحرك */
-    if(world[by][bx]==="empty") world[by][bx]="iceball";
-    setTimeout(()=>{ if(world[by][bx]==="iceball") world[by][bx]="empty"; drawWorld(); },200);
-    drawWorld();
-  },150);
-}
-
-/* ══ MOVE ══ */
-/* تتبع الـ Hold */
-const keysHeld={};
-document.addEventListener("keydown",e=>{ keysHeld[e.key]=true; });
-document.addEventListener("keyup",e=>{ keysHeld[e.key]=false; });
-
-/* Speed Hold interval */
-let speedHoldInterval=null;
-function startSpeedHold(dx,dy){
-  if(speedHoldInterval) return;
-  let units=speedLevel===1?4:speedLevel===2?7:12;
-  let stepsInHold=0;
-  speedHoldInterval=setInterval(()=>{
-    if(paused||!activeEffects["speed"]){
-      clearInterval(speedHoldInterval); speedHoldInterval=null; return;
-    }
-    /* تحقق لو الزر لا يزال مضغوطاً */
-    let anyHeld=keysHeld["ArrowUp"]||keysHeld["ArrowDown"]||keysHeld["ArrowLeft"]||keysHeld["ArrowRight"]
-               ||keysHeld["w"]||keysHeld["s"]||keysHeld["a"]||keysHeld["d"]
-               ||keysHeld["W"]||keysHeld["S"]||keysHeld["A"]||keysHeld["D"];
-    if(!anyHeld){ clearInterval(speedHoldInterval); speedHoldInterval=null; stepsInHold=0; return; }
-
-    if(stepsInHold>=units){
-      /* انتهت الـ units، انتظر hold جديد */
-      clearInterval(speedHoldInterval); speedHoldInterval=null; stepsInHold=0; return;
-    }
-
-    /* تحرك خطوة */
-    let nx=player.x+dx, ny=player.y+dy;
-    if(nx>=0&&ny>=0&&nx<W&&ny<H&&(world[ny][nx]!=="tree"||ghostMode)){
-      if(world[ny][nx]==="tree"&&ghostMode){player.x=nx;player.y=ny;}
-      else{player.x=nx;player.y=ny;}
-      playSoundOnce(sounds.walk);
-      updateBurningTimer();
-      handleCell(nx,ny);
-      drawWorld();
-    }
-    stepsInHold++;
-  },80); /* سرعة الحركة في الـ hold */
-}
-
-document.addEventListener("keydown",e=>{
-  /* منع Hold في الوضع العادي - e.repeat يكون true لو الزر مضغوط مطول */
-  if(e.repeat && !activeEffects["speed"]) return;
-
-  if(e.key==="Escape"){
-    paused=!paused;
-    if(paused){
-      stopAllMusic();
-      clearInterval(window._gameLoop); window._gameLoop=null;
-    } else {
-      if(currentChase) playMonsterMusic(currentChase, closestDistCache||99);
-      else resumeBg();
-      window._gameLoop=setInterval(()=>{ moveMonsters(); checkWin(); drawWorld(); updateVFX(); },500);
-    }
-    ludki(paused?"PAUSED":"RESUME",paused?"Game Stopped":"Game Running","pause");
-    return;
-  }
-  if(paused)return;
-
-  let dx=0,dy=0;
-  if(e.key==="ArrowUp"   ||e.key==="w"||e.key==="W") dy=-1;
-  else if(e.key==="ArrowDown" ||e.key==="s"||e.key==="S") dy=1;
-  else if(e.key==="ArrowLeft" ||e.key==="a"||e.key==="A") dx=-1;
-  else if(e.key==="ArrowRight"||e.key==="d"||e.key==="D") dx=1;
-  else return;
-
-  /* حساب عدد الخطوات في هذه الضغطة */
-  let movesThisPress=1;
-  if(activeEffects["speed"] && speedStepsLeft>0){
-    movesThisPress=1; /* خطوة واحدة لكل ضغطة لكن نحسب من الـ hold */
-    speedStepsLeft--;
-    if(speedStepsLeft<=0){
-      /* انتهت الخطوات المسموحة، أعد العداد للـ hold التالي */
-      let units=speedLevel===1?4:speedLevel===2?7:12;
-      speedStepsLeft=units;
-    }
-  }
-
-  for(let step=0;step<movesThisPress;step++){
-    let nx=player.x+dx, ny=player.y+dy;
-    if(nx<0||ny<0||nx>=W||ny>=H) break;
-    if(world[ny][nx]==="tree"&&!ghostMode) break;
-    if(world[ny][nx]==="tree"&&ghostMode){player.x=nx;player.y=ny;continue;}
-
-    player.x=nx; player.y=ny;
-    playSoundOnce(sounds.walk);
-    updateBurningTimer(); /* تحقق من الـ Lava بعد كل خطوة */
-
-    let cell=world[ny][nx];
-    handleCell(nx,ny);
-  }
-  drawWorld();
-});
-
-function handleCell(nx,ny){
-    let cell=world[ny][nx];
-
-    /* 🔸 FIREZONE: يعطي Burning II */
-    if(cell==="firezone"){
-      if(!lavaImmune){
-        burnLevel=Math.max(burnLevel,1);
-        startBurning();
-        ludki("🔸 Fire Zone","Burning II!","damage");
-        playSound(sounds.burn);
-      }
-    }
-    /* 🔹 ICEZONE: يعطي Frost II */
-    if(cell==="icezone"){
-      startFrost(2);
-      ludki("🔹 Ice Zone","Frost II!","damage");
-    }
-    /* 💨 SCORCH (أثر كرة النار في الشجرة): يعطي Burning I */
-    if(cell==="scorch"){
-      burnLevel=0;
-      startBurning();
-      ludki("💨 Fire Scorch","Burning I","damage");
-      playSound(sounds.burn);
-    }
-    /* 🧊 ICESCORCH (أثر كرة الجليد في الشجرة): يعطي Frost I */
-    if(cell==="icescorch"){
-      startFrost(1);
-      ludki("🧊 Ice Scorch","Frost I","damage");
-    }
-
-    /* 🌋 LAVA: −25 فوري + burning مستمر */
-    if(cell==="lava"){
-      if(!lavaImmune){
-        hp-=25;
-        ludki("🔥 LAVA","−25 HP | Burning!","damage");
-        playSound(sounds.burn);
-        if(hp<=0){triggerDeath("Burned by Lava 🌋");drawWorld();return;}
-        startBurning();
-      }else{
-        ludki("🌋 Immune","Lava has no effect!","collect");
-      }
-    }
-    else if(cell==="med"){
-      world[ny][nx]="empty";
-      hp=Math.min(100,hp+15);
-      /* شيل Weakness و Poison */
-      for(let eff of ["weakness","poison"]){
-        if(activeEffects[eff]){
-          clearTimeout(activeEffects[eff].timer);
-          EFFECT_DEFS[eff].remove();
-          delete activeEffects[eff];
-        }
-      }
-      /* أعطِ Strength */
-      applyEffect("strength");
-      ludki("🧪 MED","+15 HP | Strength 💪","heal");
-      playSound(sounds.med);
-    }
-    else if(cell==="medkit"){
-      world[ny][nx]="empty"; hp=100;
-      applyEffect("shield");
-      ludki("🧰 MEDKIT","Full HP + Shield 🛡️","collect");
-      playSound(sounds.medkit);
-    }
-    else if(cell==="bandage"){
-      /* تعمل فقط لو HP ناقص أو عنده bleeding/burning */
-      let needsHealing = hp < 100 || activeEffects["bleeding"] || activeEffects["burning"];
-      if(needsHealing){
-        world[ny][nx]="empty";
-        hp=Math.min(100,hp+10);
-        for(let eff of ["bleeding","burning"]){
-          if(activeEffects[eff]){
-            clearTimeout(activeEffects[eff].timer);
-            EFFECT_DEFS[eff].remove();
-            delete activeEffects[eff];
-          }
-        }
-        clearInterval(bleedInterval); bleedInterval=null; bleedLevel=0; bleedHitCount=0;
-        clearInterval(burningInterval); burningInterval=null;
-        ludki("🩹 BANDAGE","+10 HP | Bleeding & Burning cleared","heal");
-        playSound(sounds.medkit);
-      }
-    }
-    else if(cell==="energy"){
-      world[ny][nx]="empty";
-      /* رفع مستوى Speed لو فعال */
-      if(activeEffects["speed"]) speedLevel=Math.min(3,speedLevel+1);
-      else speedLevel=1;
-      /* تحديث label */
-      EFFECT_DEFS["speed"].label=`Speed ${getRoman(speedLevel)}`;
-      /* عدد الخطوات حسب المستوى */
-      let units=speedLevel===1?4:speedLevel===2?7:12;
-      speedStepsLeft=units;
-      applyEffect("speed");
-      playSound(sounds.effect);
-    }
-    else if(cell==="question"){
-      world[ny][nx]="empty";
-      let eff=QUESTION_EFFECTS[Math.floor(Math.random()*QUESTION_EFFECTS.length)];
-      applyEffect(eff);
-      playSound(sounds.effect);
-    }
-    else if(cell==="freeze"){
-      world[ny][nx]="empty";
-      applyEffect("freeze");
-      playSound(sounds.effect);
-    }
-    else if(cell==="poison_item"){
-      world[ny][nx]="empty";
-      applyEffect("poison");
-      playSound(sounds.effect);
-    }
-    else if(itemTarget[cell]){
-      world[ny][nx]="empty";
-      let gain=luckyMode?2:1;
-      itemCollected[cell]=(itemCollected[cell]||0)+gain;
-      ludki("COLLECT",`+${gain} ${itemName[cell]||cell}`,"collect");
-      if(cell==="gold")         playSound(sounds.gold);
-      else if(cell==="diamond") playSound(sounds.diamond);
-      else                      playSound(sounds.collect);
-    }
-
-}
-
-document.addEventListener("keyup",e=>{
-  if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","w","a","s","d","W","A","S","D"].includes(e.key)){
-    sounds.walk.pause(); sounds.walk.currentTime=0;
-    /* أوقف hold لو رُفع الزر */
-    clearInterval(speedHoldInterval); speedHoldInterval=null;
-  }
-});
-
-/* ══ MONSTERS ══ */
 function moveMonsters(){
-  if(paused)return;
+  if(paused || freezeMonsters) return;
 
-  /* أوجد الوحش الأقرب ونوعه */
   let closestMonster=null, closestDist=Infinity; closestDistCache=Infinity;
   monsters.forEach(m=>{
     let d=Math.abs(m.x-player.x)+Math.abs(m.y-player.y);
@@ -1422,9 +1339,7 @@ function moveMonsters(){
   });
 
   let newState=closestDist<=14?closestMonster?.type:null;
-
   if(newState){
-    /* شغل الـ layer المناسب حسب المسافة */
     playMonsterMusic(newState, closestDist);
     currentChase=newState;
   } else if(currentChase!==null){
@@ -1434,31 +1349,29 @@ function moveMonsters(){
     currentChase=null;
   }
 
-  if(freezeMonsters)return;
+  monsters.forEach(m=>{ 
+    if(m.cd1>0)m.cd1--; 
+    if(m.cd2>0)m.cd2--; 
+    if(m.cd3>0)m.cd3--; 
+  });
 
-  /* تقليل الـ cooldowns */
-  monsters.forEach(m=>{ if(m.cd1>0)m.cd1--; if(m.cd2>0)m.cd2--; });
-
-  /* تفعيل القدرات */
+  // تفعيل قدرات الوحش الفاسد
   monsters.forEach(m=>{
     let dist=Math.abs(m.x-player.x)+Math.abs(m.y-player.y);
-    if(m.type==="fire"){
-      if(dist<=6) flameSurge(m);
-      if(dist<=8) fireFireball(m);
-    }
-    if(m.type==="ice"){
-      if(dist<=6) iceStorm(m);
-      if(dist<=8) fireIceBolt(m);
+    if(m.type==="corruption"){
+      if(dist<=8) corruptionSpikes(m);
+      if(dist<=6) corruptionTrap(m);
+      if(dist<=12) corruptionXray(m);
     }
   });
 
   monsters.forEach(m=>{
     let passable=["empty","med","medkit","energy","question","freeze","poison_item",
                   "bandage","gold","copper","silver","diamond","iron","obsidian",
-                  "firezone","icezone","lava","scorch","icescorch"];
+                  "spike","trap"];
     let moves=[
       {x:m.x+1,y:m.y},{x:m.x-1,y:m.y},{x:m.x,y:m.y+1},{x:m.x,y:m.y-1}
-    ].filter(o=>o.x>=0&&o.y>=0&&o.x<W&&o.y<H&&(world[o.y][o.x]!=="tree"));
+    ].filter(o=>o.x>=0&&o.y>=0&&o.x<W&&o.y<H&&passable.includes(world[o.y][o.x]));
     moves.sort((a,b)=>(Math.abs(a.x-player.x)+Math.abs(a.y-player.y))-(Math.abs(b.x-player.x)+Math.abs(b.y-player.y)));
     if(moves[0]){m.x=moves[0].x;m.y=moves[0].y;}
 
@@ -1470,22 +1383,23 @@ function moveMonsters(){
         EFFECT_DEFS.magicShield.remove();
         return;
       }
-      let baseDmg=m.type==="fire"?17:m.type==="ice"?20:20;
+      let baseDmg=m.type==="corruption"?22:m.type==="fire"?17:m.type==="ice"?20:20;
       let dmg=weaknessActive?baseDmg*2:strengthActive?Math.floor(baseDmg*0.35):baseDmg;
       hp-=dmg; hitCooldown=true;
       setTimeout(()=>hitCooldown=false,1000);
       ludki("HIT",`−${dmg} HP`,"damage");
       playSound(sounds.hit);
-      /* تأثير حسب نوع الوحش */
-      if(m.type==="fire")  startBurning();
+      
+      if(m.type==="corruption") startCorruption();
+      else if(m.type==="fire")  startBurning();
       else if(m.type==="ice") startFrost(1);
       else startBleeding();
-      if(hp<=0) triggerDeath(`Killed by ${m.type==="fire"?"🔴 Fire Monster":m.type==="ice"?"🔵 Ice Monster":"👹 Monster"}`);
+      
+      if(hp<=0) triggerDeath(`Killed by ${m.type==="corruption"?"🟣 Corruption Monster":m.type==="fire"?"🔥 Fire Monster":m.type==="ice"?"❄️ Ice Monster":"👹 Monster"}`);
     }
   });
 }
 
-/* ══ WIN ══ */
 function checkWin(){
   if(paused||levelCleared)return;
   let done=true;
@@ -1495,687 +1409,69 @@ function checkWin(){
     ludki("LEVEL COMPLETE","→ Level "+stage,"level");
     playSound(sounds.level);
     stopAllMusic(); currentChase=null;
+    
+    // تنظيف قدرات الوحش الفاسد
+    monsters.forEach(m=>{
+      if(m.xrayTimer) clearTimeout(m.xrayTimer);
+      m.xrayActive = false;
+    });
+    
     setTimeout(()=>{
       createWorld(); placeItems(); spawnMonsters(); drawWorld();
       levelCleared=false;
-      playRandomBg(); /* BG عشوائي جديد مع كل مستوى */
+      playRandomBg();
     },1200);
   }
 }
 
+function triggerDeath(reason){
+  clearInterval(bleedInterval); bleedInterval=null; bleedLevel=0; bleedHitCount=0;
+  clearInterval(poisonInterval); poisonInterval=null; poisonLevel=0; poisonHitCount=0;
+  clearInterval(frostInterval); frostInterval=null; frostLevel=0; frostHitCount=0;
+  clearInterval(corruptionInterval); corruptionInterval=null; corruptionLevel=0; corruptionHitCount=0;
+  burnLevel=0;
+  
+  // تنظيف قدرات الوحش الفاسد
+  monsters.forEach(m=>{
+    if(m.xrayTimer) clearTimeout(m.xrayTimer);
+    m.xrayActive = false;
+  });
+  
+  resetEffects();
+  
+  hp=100; hitCooldown=false; levelCleared=false;
+  paused=true;
+  stopAllMusic(); currentChase=null;
+  playSound(sounds.gameover);
+  document.getElementById("gameOverReason").textContent=reason;
+  document.getElementById("gameOverScreen").classList.add("show");
+}
 
-/* ══ VFX UPDATE ══ */
 function updateVFX(){
   let classes=[];
   if(activeEffects["bleeding"])  classes.push("vfx-bleeding");
   if(activeEffects["poison"])    classes.push("vfx-poison");
   if(activeEffects["burning"])   classes.push("vfx-burning");
   if(activeEffects["frost"])     classes.push("vfx-frost");
+  if(activeEffects["corruption"]) classes.push("vfx-corruption");
   if(activeEffects["blind"])     classes.push("vfx-blind");
-  if(activeEffects["weakness"])  classes.push("vfx-weakness");
-  /* remove all vfx classes then add active */
   document.body.className=classes.join(" ");
 }
 
-/* ══ LOOP ══ */
-window._gameLoop=setInterval(()=>{ moveMonsters(); checkWin(); drawWorld(); updateVFX(); },500);
-
-
-/* ══════════════════════════════════
-   🛠️ ADMIN CONSOLE COMMANDS
-   اكتب الأوامر في الـ Console (F12)
-   ══════════════════════════════════ */
-
-/* 🏆 مستوى */
-function reachLevel(n){
-  stage=n;
-  createWorld(); placeItems(); spawnMonsters(); drawWorld();
-  playRandomBg();
-  console.log(`%c✅ انتقلت للمستوى ${n}`,"color:lime;font-size:14px");
-}
-
-function setStage(n){ reachLevel(n); }
-
-/* ❤️ صحة */
-function setHP(n){
-  hp=Math.max(1,Math.min(100,n));
-  drawWorld();
-  console.log(`%c✅ HP = ${hp}`,"color:lime;font-size:14px");
-}
-
-function godMode(){
-  applyEffect("invincible");
-  /* نجعله دائم بتجديد مستمر */
-  if(window._godInterval) clearInterval(window._godInterval);
-  window._godInterval=setInterval(()=>{
-    if(!activeEffects["invincible"]) applyEffect("invincible");
-  },5000);
-  console.log("%c✅ God Mode ON — invincible دائم","color:gold;font-size:14px");
-}
-
-function die(){
-  triggerDeath("💀 Admin Command");
-  console.log("%c☠️ تم القتل بأمر الأدمن","color:red;font-size:14px");
-}
-
-/* ⚗️ تأثيرات */
-/*
-  giveEffect(name, durationSeconds, level)
-  - name: اسم التأثير (اجباري)
-  - durationSeconds: المدة بالثواني (اجباري)
-  - level: المستوى I/II/III (اختياري - للتأثيرات ذات المستويات)
-*/
-function giveEffect(name, durationSec, level){
-  if(!EFFECT_DEFS[name]){
-    console.log(`%c❌ تأثير غير موجود: ${name}\nالتأثيرات المتاحة: ${Object.keys(EFFECT_DEFS).join(", ")}`,"color:red");
-    return;
-  }
-
-  /* أوقف القديم لو موجود */
-  if(activeEffects[name]){
-    clearTimeout(activeEffects[name].timer);
-    EFFECT_DEFS[name].remove();
-    delete activeEffects[name];
-  }
-
-  let dur = durationSec * 1000;
-
-  /* تأثيرات ذات مستويات */
-  if(name==="bleeding" && level){
-    bleedLevel=Math.min(3,level);
-    bleedHitCount=level;
-    let dps=getBleedDPS(bleedLevel);
-    EFFECT_DEFS["bleeding"].label=`Bleeding ${getRoman(bleedLevel)}`;
-    clearInterval(bleedInterval);
-    bleedInterval=setInterval(()=>{
-      if(paused)return;
-      hp-=dps;
-      ludki(`🩸 Bleeding ${getRoman(bleedLevel)}`,`−${dps} HP/s`,"damage");
-      playSound(sounds.bleed);
-      if(hp<=0) triggerDeath(`Bled out 🩸`);
-      drawWorld();
-    },1000);
-    activeEffects["bleeding"]={
-      endTime:Date.now()+dur,
-      timer:setTimeout(()=>{ clearInterval(bleedInterval); bleedInterval=null; bleedLevel=0; delete activeEffects["bleeding"]; drawHud(); },dur)
-    };
-    drawHud();
-    console.log(`%c✅ Bleeding ${getRoman(bleedLevel)} — ${durationSec}s`,"color:red;font-size:14px");
-    return;
-  }
-
-  if(name==="poison" && level){
-    poisonLevel=Math.min(3,level);
-    poisonHitCount=level;
-    let pdps=getPoisonDPS(poisonLevel);
-    EFFECT_DEFS["poison"].label=`Poison ${getRoman(poisonLevel)}`;
-    clearInterval(poisonInterval);
-    poisonInterval=setInterval(()=>{
-      if(paused)return;
-      hp-=pdps;
-      ludki(`☠️ Poison ${getRoman(poisonLevel)}`,`−${pdps} HP/s`,"damage");
-      if(hp<=0) triggerDeath(`Poisoned ☠️`);
-      drawWorld();
-    },1000);
-    activeEffects["poison"]={
-      endTime:Date.now()+dur,
-      timer:setTimeout(()=>{ clearInterval(poisonInterval); poisonInterval=null; poisonLevel=0; delete activeEffects["poison"]; drawHud(); },dur)
-    };
-    drawHud();
-    console.log(`%c✅ Poison ${getRoman(poisonLevel)} — ${durationSec}s`,"color:lime;font-size:14px");
-    return;
-  }
-
-  if(name==="burning" && level){
-    burnLevel=Math.min(3,level);
-    let bdps=getBurnDPS(burnLevel);
-    EFFECT_DEFS["burning"].label=`Burning ${getRoman(burnLevel)}`;
-    clearInterval(burningInterval);
-    burningInterval=setInterval(()=>{
-      if(paused)return;
-      hp-=bdps;
-      ludki(`🔥 Burning ${getRoman(burnLevel)}`,`−${bdps} HP/2s`,"damage");
-      playSound(sounds.burn);
-      if(hp<=0) triggerDeath(`Burned 🔥`);
-      drawWorld();
-    },2000);
-    activeEffects["burning"]={
-      endTime:Date.now()+dur,
-      timer:setTimeout(()=>{ clearInterval(burningInterval); burningInterval=null; burnLevel=0; delete activeEffects["burning"]; drawHud(); },dur)
-    };
-    drawHud();
-    console.log(`%c✅ Burning ${getRoman(burnLevel)} — ${durationSec}s`,"color:orange;font-size:14px");
-    return;
-  }
-
-  if(name==="frost" && level){
-    frostLevel=Math.min(3,level);
-    let fdps=getFrostDPS(frostLevel);
-    EFFECT_DEFS["frost"].label=`Frost ${getRoman(frostLevel)}`;
-    clearInterval(frostInterval);
-    frostInterval=setInterval(()=>{
-      if(paused)return;
-      hp-=fdps;
-      ludki(`❄️ Frost ${getRoman(frostLevel)}`,`−${fdps} HP/s`,"damage");
-      if(hp<=0) triggerDeath(`Frozen ❄️`);
-      drawWorld();
-    },1000);
-    activeEffects["frost"]={
-      endTime:Date.now()+dur,
-      timer:setTimeout(()=>{ clearInterval(frostInterval); frostInterval=null; frostLevel=0; delete activeEffects["frost"]; drawHud(); },dur)
-    };
-    drawHud();
-    console.log(`%c✅ Frost ${getRoman(frostLevel)} — ${durationSec}s`,"color:#0af;font-size:14px");
-    return;
-  }
-
-  /* تأثيرات عادية بدون مستوى */
-  EFFECT_DEFS[name].apply();
-  activeEffects[name]={
-    endTime:Date.now()+dur,
-    timer:setTimeout(()=>{ EFFECT_DEFS[name].remove(); delete activeEffects[name]; drawHud(); },dur)
-  };
-  drawHud();
-  console.log(`%c✅ ${EFFECT_DEFS[name].emoji} ${name} — ${durationSec}s`,"color:lime;font-size:14px");
-}
-
-function removeEffect(name){
-  if(activeEffects[name]){
-    clearTimeout(activeEffects[name].timer);
-    EFFECT_DEFS[name]?.remove();
-    delete activeEffects[name];
-    drawHud();
-    console.log(`%c✅ تم إزالة ${name}`,"color:lime;font-size:14px");
-  } else {
-    console.log(`%c⚠️ ${name} غير فعال`,"color:orange");
-  }
-}
-
-function clearAllEffects(){
-  for(let name in activeEffects){
-    clearTimeout(activeEffects[name].timer);
-    EFFECT_DEFS[name]?.remove();
-  }
-  activeEffects={};
-  clearInterval(bleedInterval); bleedInterval=null; bleedLevel=0; bleedHitCount=0;
-  clearInterval(poisonInterval); poisonInterval=null; poisonLevel=0; poisonHitCount=0;
-  clearInterval(burningInterval); burningInterval=null; burnLevel=0;
-  clearInterval(frostInterval); frostInterval=null; frostLevel=0; frostHitCount=0;
-  vision=5; stepSize=1; shield=false; magicShieldActive=false;
-  magnetActive=false; lavaImmune=false; ghostMode=false;
-  luckyMode=false; invincibleMode=false; weaknessActive=false; strengthActive=false;
-  drawWorld();
-  console.log("%c✅ تم مسح كل التأثيرات","color:lime;font-size:14px");
-}
-
-function maxEffects(){
-  let good=["speed","magicShield","magnet","reveal","lavaImmunity","ghost","lucky","invincible","strength","shield","freeze"];
-  for(let e of good) giveEffect(e, 60);
-  console.log("%c✅ كل التأثيرات الجيدة فعالة لـ 60 ثانية","color:gold;font-size:14px");
-}
-
-/* 💰 عناصر */
-function fillInventory(){
-  for(let k in itemTarget) itemCollected[k]=itemTarget[k];
-  drawWorld();
-  console.log("%c✅ تم جمع كل العناصر","color:lime;font-size:14px");
-}
-
-function spawnItem(type, count=5){
-  let placed=0;
-  for(let dy=-3;dy<=3&&placed<count;dy++){
-    for(let dx=-3;dx<=3&&placed<count;dx++){
-      let nx=player.x+dx, ny=player.y+dy;
-      if(nx>=0&&ny>=0&&nx<W&&ny<H&&world[ny][nx]==="empty"){
-        world[ny][nx]=type; placed++;
-      }
-    }
-  }
-  drawWorld();
-  console.log(`%c✅ تم وضع ${placed} من ${type} حول اللاعب`,"color:lime;font-size:14px");
-}
-
-/* 👹 وحوش */
-function killMonsters(){
-  monsters=[];
-  stopChase(); currentChase=null; resumeBg();
-  drawWorld();
-  console.log("%c✅ تم قتل كل الوحوش","color:lime;font-size:14px");
-}
-
-function spawnMonster(type="normal"){
-  let x=player.x+5, y=player.y+5;
-  if(x<W&&y<H) monsters.push({x,y,type,cd1:0,cd2:0});
-  drawWorld();
-  console.log(`%c✅ تم إضافة وحش ${type}`,"color:lime;font-size:14px");
-}
-
-/* 🗺️ خريطة */
-function revealMap(){
-  giveEffect("reveal", 999);
-  console.log("%c✅ الخريطة مكشوفة","color:lime;font-size:14px");
-}
-
-function teleport(x,y){
-  if(x>=0&&y>=0&&x<W&&y<H){
-    player.x=x; player.y=y;
-    drawWorld();
-    console.log(`%c✅ انتقلت إلى (${x},${y})`,"color:lime;font-size:14px");
-  } else {
-    console.log(`%c❌ إحداثيات خارج الخريطة (0-${W-1}, 0-${H-1})`,"color:red");
-  }
-}
-
-function noClip(){
-  ghostMode=!ghostMode;
-  if(!activeEffects["ghost"]){
-    activeEffects["ghost"]={endTime:Date.now()+999999,timer:null};
-    EFFECT_DEFS["ghost"].emoji="👻";
-    EFFECT_DEFS["ghost"].label="Ghost (Admin)";
-  }
-  drawHud();
-  console.log(`%c${ghostMode?"✅ NoClip ON":"❌ NoClip OFF"}`,"color:lime;font-size:14px");
-}
-
-/* 📋 عرض الأوامر */
-function help(){
-  console.log(`%c
-╔══════════════════════════════════════════╗
-║         🛠️ ADMIN COMMANDS               ║
-╠══════════════════════════════════════════╣
-║  🏆 LEVEL                               ║
-║  reachLevel(n)      → انتقل لمستوى      ║
-║                                          ║
-║  ❤️ HEALTH                              ║
-║  setHP(n)           → تحديد HP (1-100)  ║
-║  godMode()          → invincible دائم   ║
-║  die()              → موت فوري          ║
-║                                          ║
-║  ⚗️ EFFECTS                             ║
-║  giveEffect(name, sec, lvl?)            ║
-║    → مثال: giveEffect("poison",10,2)   ║
-║    → مثال: giveEffect("blind",8)       ║
-║  removeEffect(name) → أزل تأثير        ║
-║  clearAllEffects()  → امسح الكل        ║
-║  maxEffects()       → كل تأثيرات جيدة ║
-║                                          ║
-║  💰 ITEMS                               ║
-║  fillInventory()    → اجمع كل العناصر  ║
-║  spawnItem(type,n)  → ضع عناصر         ║
-║    → مثال: spawnItem("gold",10)        ║
-║                                          ║
-║  👹 MONSTERS                            ║
-║  killMonsters()     → اقتل الكل        ║
-║  spawnMonster(type) → أضف وحش          ║
-║    → "normal" | "fire" | "ice"         ║
-║                                          ║
-║  🗺️ MAP                                 ║
-║  revealMap()        → اكشف الخريطة     ║
-║  teleport(x,y)      → انتقل لموقع      ║
-║  noClip()           → امشي من الأشجار  ║
-╚══════════════════════════════════════════╝
-`,"color:lime;font-family:monospace;font-size:12px");
-}
-
-/* رسالة ترحيب في الـ Console */
-console.log("%c🎮 Final Survival Game — Admin Mode Ready!\naكتب help() لعرض كل الأوامر","color:gold;font-size:16px;font-weight:bold");
-
-
-/* ══════════════════════════════════
-   👑 OWNER / FULL CONTROL COMMANDS
-   ══════════════════════════════════ */
-
-/* ══ WORLD CONTROL ══ */
-function clearTrees(){
-  for(let y=0;y<H;y++) for(let x=0;x<W;x++) if(world[y][x]==="tree") world[y][x]="empty";
-  drawWorld();
-  console.log("%c✅ تم إزالة كل الأشجار","color:lime;font-size:14px");
-}
-
-function fillTrees(){
-  for(let y=0;y<H;y++) for(let x=0;x<W;x++) if(world[y][x]==="empty") world[y][x]="tree";
-  world[player.y][player.x]="empty";
-  drawWorld();
-  console.log("%c✅ تم ملء الخريطة بالأشجار","color:lime;font-size:14px");
-}
-
-function setVision(n){
-  vision=n;
-  drawWorld();
-  console.log(`%c✅ الرؤية = ${n}`,"color:lime;font-size:14px");
-}
-
-function fillLava(){
-  for(let y=0;y<H;y++) for(let x=0;x<W;x++) if(world[y][x]==="empty") world[y][x]="lava";
-  world[player.y][player.x]="empty";
-  drawWorld();
-  console.log("%c🌋 تم ملء الخريطة بالـ Lava","color:orange;font-size:14px");
-}
-
-function clearLava(){
-  for(let y=0;y<H;y++) for(let x=0;x<W;x++) if(world[y][x]==="lava") world[y][x]="empty";
-  drawWorld();
-  console.log("%c✅ تم إزالة كل الـ Lava","color:lime;font-size:14px");
-}
-
-function setCell(x,y,type){
-  if(x>=0&&y>=0&&x<W&&y<H){ world[y][x]=type; drawWorld(); console.log(`%c✅ (${x},${y}) = ${type}`,"color:lime"); }
-  else console.log("%c❌ إحداثيات خارج الخريطة","color:red");
-}
-
-function getCell(x,y){
-  if(x>=0&&y>=0&&x<W&&y<H) console.log(`%c📍 (${x},${y}) = ${world[y][x]}`,"color:cyan;font-size:14px");
-  else console.log("%c❌ إحداثيات خارج الخريطة","color:red");
-}
-
-function whereAmI(){
-  console.log(`%c📍 موقعك: (${player.x}, ${player.y}) | Level: ${stage} | HP: ${hp}`,"color:cyan;font-size:14px");
-}
-
-function reloadMap(){
-  createWorld(); placeItems(); spawnMonsters(); drawWorld();
-  console.log("%c✅ تم إعادة تحميل الخريطة","color:lime;font-size:14px");
-}
-
-/* ══ MONSTER CONTROL ══ */
-function setMonsterPos(index, x, y){
-  if(monsters[index]){ monsters[index].x=x; monsters[index].y=y; drawWorld(); console.log(`%c✅ وحش ${index} → (${x},${y})`,"color:lime"); }
-  else console.log(`%c❌ لا يوجد وحش رقم ${index}`,"color:red");
-}
-
-function listMonsters(){
-  monsters.forEach((m,i)=> console.log(`%c👹 [${i}] type:${m.type} pos:(${m.x},${m.y}) cd1:${m.cd1} cd2:${m.cd2}`,"color:cyan;font-size:12px"));
-}
-
-function freezeAllMonsters(){
-  freezeMonsters=true;
-  console.log("%c🧊 كل الوحوش متجمدة","color:#0af;font-size:14px");
-}
-
-function unfreezeAllMonsters(){
-  freezeMonsters=false;
-  console.log("%c✅ الوحوش حرة","color:lime;font-size:14px");
-}
-
-function setMonsterSpeed(ms){
-  /* تغيير سرعة الـ loop */
-  clearInterval(window._gameLoop);
-  window._gameLoop=setInterval(()=>{ moveMonsters(); checkWin(); drawWorld(); updateVFX(); },ms);
-  console.log(`%c✅ سرعة اللعبة = ${ms}ms`,"color:lime;font-size:14px");
-}
-
-/* ══ PLAYER CONTROL ══ */
-function setPlayer(x,y){ teleport(x,y); }
-
-function maxHP(){ hp=100; drawWorld(); console.log("%c✅ HP = 100","color:lime"); }
-
-function setShield(on=true){
-  shield=on;
-  if(on){ activeEffects["shield"]={endTime:Date.now()+999999,timer:null}; }
-  else { delete activeEffects["shield"]; }
-  drawWorld(); drawHud();
-  console.log(`%c${on?"✅ Shield ON":"❌ Shield OFF"}`,"color:lime;font-size:14px");
-}
-
-function setInvincible(on=true){
-  invincibleMode=on;
-  if(on){ activeEffects["invincible"]={endTime:Date.now()+999999,timer:null}; EFFECT_DEFS["invincible"].label="Invincible (∞)"; }
-  else { delete activeEffects["invincible"]; invincibleMode=false; }
-  drawHud();
-  console.log(`%c${on?"✅ Invincible ON":"❌ Invincible OFF"}`,"color:gold;font-size:14px");
-}
-
-/* ══ ITEMS CONTROL ══ */
-function giveGold(n=10){ itemCollected["gold"]=(itemCollected["gold"]||0)+n; drawWorld(); console.log(`%c✅ +${n} Gold`,"color:gold;font-size:14px"); }
-function giveDiamond(n=5){ itemCollected["diamond"]=(itemCollected["diamond"]||0)+n; drawWorld(); console.log(`%c✅ +${n} Diamond`,"color:#0af;font-size:14px"); }
-
-function setItemCount(type,n){
-  if(itemCollected[type]!==undefined){ itemCollected[type]=n; drawWorld(); console.log(`%c✅ ${type} = ${n}`,"color:lime"); }
-  else console.log(`%c❌ عنصر غير موجود: ${type}`,"color:red");
-}
-
-function listItems(){
-  for(let k in itemTarget) console.log(`%c${itemEmoji[k]||"?"} ${k}: ${itemCollected[k]||0}/${itemTarget[k]}`,"color:cyan;font-size:12px");
-}
-
-function clearAllItems(){
-  for(let y=0;y<H;y++) for(let x=0;x<W;x++){
-    if(itemTarget[world[y][x]]) world[y][x]="empty";
-  }
-  drawWorld();
-  console.log("%c✅ تم مسح كل العناصر من الخريطة","color:lime");
-}
-
-/* ══ GAME CONTROL ══ */
-function pauseGame(){
-  paused=true;
-  stopAllMusic();
-  /* تجميد كل الـ intervals */
-  if(window._gameLoop){ clearInterval(window._gameLoop); window._gameLoop=null; }
-  console.log("%c⏸️ اللعبة متوقفة — كل شيء متجمد","color:orange;font-size:14px");
-}
-function resumeGame(){
+document.getElementById("retryBtn").addEventListener("click",()=>{
+  document.getElementById("gameOverScreen").classList.remove("show");
   paused=false;
-  resumeBg();
-  /* إعادة تشغيل الـ loop */
-  if(!window._gameLoop) window._gameLoop=setInterval(()=>{ moveMonsters(); checkWin(); drawWorld(); updateVFX(); },500);
-  console.log("%c▶️ اللعبة تعمل","color:lime;font-size:14px");
-}
-
-function setGameSpeed(ms=500){
-  clearInterval(window._gameLoop);
-  window._gameLoop=setInterval(()=>{ moveMonsters(); checkWin(); drawWorld(); updateVFX(); },ms);
-  console.log(`%c✅ سرعة اللعبة = ${ms}ms (الافتراضي 500)`,"color:lime;font-size:14px");
-}
-
-function resetGame(){
-  stage=1; hp=100;
-  clearAllEffects();
-  stopAllMusic(); currentChase=null;
+  playSound(sounds.restart);
   createWorld(); placeItems(); spawnMonsters(); drawWorld();
-  playRandomBg();
-  console.log("%c✅ تم إعادة تشغيل اللعبة من البداية","color:lime;font-size:14px");
-}
+  resumeBg();
+});
 
-/* ══ INFO ══ */
-function gameInfo(){
-  console.log(`%c
-📊 Game Info:
-  Level: ${stage}
-  HP: ${hp}
-  Position: (${player.x}, ${player.y})
-  Vision: ${vision}
-  Monsters: ${monsters.length}
-  Active Effects: ${Object.keys(activeEffects).join(", ")||"None"}
-  Paused: ${paused}
-  Ghost: ${ghostMode}
-  Invincible: ${invincibleMode}
-  Shield: ${shield}
-  Speed Level: ${speedLevel}
-  Burn Level: ${burnLevel}
-  Bleed Level: ${bleedLevel}
-  Frost Level: ${frostLevel}
-  Poison Level: ${poisonLevel}
-`,"color:cyan;font-family:monospace;font-size:12px");
-}
-
-function listEffects(){
-  console.log("%c⚗️ التأثيرات المتاحة:","color:gold;font-size:14px");
-  for(let name in EFFECT_DEFS){
-    let def=EFFECT_DEFS[name];
-    let hasLevel=["bleeding","poison","burning","frost"].includes(name);
-    console.log(`%c  ${def.emoji} ${name} (${def.good?"✅ جيد":"❌ ضار"})${hasLevel?" — له مستويات 1/2/3":""}`,"color:cyan;font-size:11px");
-  }
-}
-
-/* ══ UPDATE HELP ══ */
-const _oldHelp = help;
-help = function(){
-  _oldHelp();
-  console.log(`%c
-╔══════════════════════════════════════════╗
-║       👑 OWNER COMMANDS                 ║
-╠══════════════════════════════════════════╣
-║  🗺️ WORLD                               ║
-║  clearTrees()       → أزل الأشجار      ║
-║  fillTrees()        → ملء بالأشجار     ║
-║  clearLava()        → أزل الـ Lava     ║
-║  fillLava()         → ملء بالـ Lava    ║
-║  setCell(x,y,type)  → تعديل خلية       ║
-║  getCell(x,y)       → نوع الخلية       ║
-║  setVision(n)       → تحديد الرؤية     ║
-║  reloadMap()        → إعادة الخريطة    ║
-║  whereAmI()         → موقعك الحالي     ║
-║                                          ║
-║  👹 MONSTERS                            ║
-║  listMonsters()     → قائمة الوحوش     ║
-║  setMonsterPos(i,x,y) → حرك وحش       ║
-║  freezeAllMonsters()  → جمد الكل      ║
-║  unfreezeAllMonsters()→ حرر الكل      ║
-║  setGameSpeed(ms)   → سرعة اللعبة      ║
-║                                          ║
-║  👤 PLAYER                              ║
-║  maxHP()            → HP كامل          ║
-║  setShield(true)    → shield دائم      ║
-║  setInvincible(true)→ invincible دائم  ║
-║                                          ║
-║  💰 ITEMS                               ║
-║  giveGold(n)        → أعطِ ذهب         ║
-║  giveDiamond(n)     → أعطِ ماس         ║
-║  setItemCount(t,n)  → تحديد عدد        ║
-║  listItems()        → قائمة العناصر    ║
-║  clearAllItems()    → امسح من الخريطة  ║
-║                                          ║
-║  🎮 GAME                                ║
-║  pauseGame()        → إيقاف            ║
-║  resumeGame()       → تشغيل            ║
-║  resetGame()        → إعادة من البداية ║
-║  gameInfo()         → معلومات اللعبة   ║
-║  listEffects()      → كل التأثيرات     ║
-╚══════════════════════════════════════════╝
-`,"color:gold;font-family:monospace;font-size:12px");
-}
-// --- نظام الـ Server (حفظ التقدم) ---
-function saveGame() {
-    const data = {
-        stage: stage,
-        hp: hp,
-        items: itemCollected
-    };
-    localStorage.setItem('survival_save', JSON.stringify(data));
-}
-
-function loadGame() {
-    const saved = localStorage.getItem('survival_save');
-    if (saved) {
-        const data = JSON.parse(saved);
-        stage = data.stage;
-        hp = data.hp;
-        itemCollected = data.items;
-        ludki("✅ Server", "Data Loaded!", "collect");
-    }
-}
-// دالة شاملة للحركة تعمل مع الكيبورد وأزرار اللمس
-function movePlayer(dx, dy) {
-    if (typeof paused !== 'undefined' && paused) return;
-
-    let nx = player.x + dx;
-    let ny = player.y + dy;
-
-    // التأكد من أن الإحداثيات داخل حدود الخريطة وليست عائقاً (شجرة مثلاً)
-    if (nx >= 0 && nx < W && ny >= 0 && ny < H && world[ny][nx] !== "tree") {
-        if (item === "gold") {
-    player.gold += 10;
-    world[player.y][player.x] = "floor"; // مسح الذهب
-    
-    // --- تفعيل التنبيه هنا ---
-    showCollectPopup("+10 💰"); 
-    
-    updateHUD();
-} else if (item === "heart") {
-    player.hp = Math.min(100, player.hp + 20);
-    world[player.y][player.x] = "floor";
-    
-    // تنبيه مختلف للقلب
-    showCollectPopup("+20 HP ❤️");
-    
-    updateHUD();
-}
-        // تحريك اللاعب للإحداثيات الجديدة
-        player.x = nx;
-        player.y = ny;
-
-        // --- الجزء الأهم: التجميع ---
-        // الحصول على نوع العنصر الموجود في المربع الجديد
-        let item = world[player.y][player.x]; 
-
-        if (item === "gold" || item === "item") {
-            player.gold = (player.gold || 0) + 10; // زيادة الذهب
-            world[player.y][player.x] = "floor"; // مسح العنصر من الخريطة بعد أخذه
-            
-            // تفعيل صوت أو مؤثر بصري عند التجميع
-            if (typeof triggerVFX === 'function') triggerVFX('vfx-collect', 200);
-        }
-
-        // تحديث الرؤية والـ HUD
-        if (typeof updateHUD === 'function') updateHUD();
-        if (typeof drawWorld === 'function') drawWorld();
-        
-        // تحريك الوحوش بعد كل خطوة للاعب
-        if (typeof moveMonsters === 'function') moveMonsters();
-    }
-}
-function showCollectPopup(text) {
-    const gameContainer = document.getElementById('game');
-    const popup = document.createElement('div');
-    popup.className = 'collect-popup';
-    popup.innerText = text;
-
-    // تحديد مكان اللاعب داخل الـ Game container
-    // نضرب الإحداثيات في حجم الخلية (مثلاً 14px)
-    const cellSize = 14; 
-    popup.style.left = (player.x * cellSize) + 'px';
-    popup.style.top = (player.y * cellSize) + 'px';
-
-    gameContainer.appendChild(popup);
-
-    // إزالة العنصر من الـ DOM بعد انتهاء الأنيميشن
-    setTimeout(() => {
-        popup.remove();
-    }, 800);
-}
-// ربط أزرار الـ HTML بالأوامر البرمجية
-function setupMobileControls() {
-    const controls = {
-        'btn-up': { x: 0, y: -1 },
-        'btn-down': { x: 0, y: 1 },
-        'btn-left': { x: -1, y: 0 },
-        'btn-right': { x: 1, y: 0 }
-    };
-
-    Object.keys(controls).forEach(id => {
-        const btn = document.getElementById(id);
-        if (btn) {
-            // استخدام touchstart لسرعة الاستجابة على الهاتف
-            btn.addEventListener('touchstart', (e) => {
-                e.preventDefault(); // منع المتصفح من عمل زوم أو سكرول
-                movePlayer(controls[id].x, controls[id].y);
-            });
-            // كدعم إضافي للماوس
-            btn.addEventListener('mousedown', (e) => {
-                movePlayer(controls[id].x, controls[id].y);
-            });
-        }
-    });
-}
-
-// تشغيل وظيفة الربط فور تحميل الصفحة
-setupMobileControls();
-// استدعاء عند بدء اللعبة
-loadGame();
+/* GAME LOOP */
+window._gameLoop=setInterval(gameLoop,500);
 
 /* START */
 createWorld(); placeItems(); spawnMonsters(); drawWorld();
+playRandomBg();
 </script>
 </body>
 </html>
