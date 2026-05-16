@@ -184,6 +184,37 @@ body.vfx-hallucination1 #game{animation:halluWave 2.5s ease-in-out infinite;}
 @media (min-width:769px) and (max-width:1200px){
   #hud{width:175px;font-size:11px;}
 }
+/* ديسكتوب */
+@media (min-width: 1201px) {
+  #game {
+    max-width: 95vw;
+    max-height: 60vh;
+  }
+}
+
+/* تابليت */
+@media (min-width: 769px) and (max-width: 1200px) {
+  #game {
+    max-width: 90vw;
+    max-height: 50vh;
+  }
+  #hud {
+    width: 160px;
+  }
+}
+
+/* هاتف */
+@media (max-width: 768px) {
+  #game {
+    max-width: 95vw;
+    max-height: 40vh;
+  }
+  #hud {
+    position: relative;
+    width: 95vw;
+    order: 2;
+  }
+}
 </style>
 </head>
 <body>
@@ -253,40 +284,36 @@ body.vfx-hallucination1 #game{animation:halluWave 2.5s ease-in-out infinite;}
   </div>
 </div>
 
-<script>
-const W=60, H=120;
-let VIEW_W=60, VIEW_H=30, CELL_SIZE=14;
+<script>const W=60, H=120;
+let VIEW_W=60, VIEW_H=36, CELL_SIZE=14;
 
 function calcViewport(){
   const sw=window.innerWidth, sh=window.innerHeight;
-  const isMobile=sw<=768;
-  const isTablet=sw>768&&sw<=1200;
-  if(isMobile){
-    /* هاتف: HUD تحت الماب، أزرار تحت الـ HUD */
-    let hudH=Math.min(90,sh*0.12);
-    let ctrlH=Math.min(140,sh*0.22);
-    let availW=sw-8;
-    let availH=sh-hudH-ctrlH-16;
-    CELL_SIZE=Math.max(8,Math.min(13,Math.floor(availW/W)));
-    VIEW_W=Math.min(W,Math.floor(availW/CELL_SIZE));
-    VIEW_H=Math.min(H,Math.floor(availH/CELL_SIZE));
-  } else if(isTablet){
-    /* تابليت: HUD جانبي ضيق */
-    let availW=sw-180-8;
-    let availH=sh-20;
-    CELL_SIZE=Math.max(10,Math.min(14,Math.floor(availW/W)));
-    VIEW_W=Math.min(W,Math.floor(availW/CELL_SIZE));
-    VIEW_H=Math.min(H,Math.floor(availH/CELL_SIZE));
-  } else {
-    /* ديسكتوب/لاب توب */
-    let availW=sw-220;
-    let availH=sh-20;
-    CELL_SIZE=Math.max(12,Math.min(16,Math.floor(Math.min(availW/W,availH/36))));
-    VIEW_W=Math.min(W,Math.floor(availW/CELL_SIZE));
-    VIEW_H=Math.min(H,Math.floor(availH/CELL_SIZE));
-  }
+  const gameEl=document.getElementById("game");
+  const hudEl=document.getElementById("hud");
+  
+  // ✅ حساب المساحة المتاحة للخريطة فقط
+  let availW = sw - 220; // مساحة HUD الثابتة
+  let availH = sh - 40;  // هامش صغير
+  
+  // ✅ احسب حجم الخلية بناءً على أكبر عرض ممكن
+  CELL_SIZE = Math.max(10, Math.min(16, Math.floor(availW / 60)));
+  
+  // ✅ احسب عدد الخلايا المرئية
+  VIEW_W = Math.min(60, Math.floor(availW / CELL_SIZE));
+  VIEW_H = Math.min(120, Math.floor(availH / CELL_SIZE));
+  
+  // ✅ طبّق على الـ CSS
+  gameEl.style.gridTemplateColumns = `repeat(${VIEW_W}, ${CELL_SIZE}px)`;
+  gameEl.style.maxWidth = VIEW_W * CELL_SIZE + "px";
+  gameEl.style.maxHeight = VIEW_H * CELL_SIZE + "px";
 }
+
+// استدعِ الدالة مرة واحدة عند التحميل
 calcViewport();
+
+// ✅ استدعِ الدالة عند تغيير حجم الشاشة فقط
+window.addEventListener("resize", calcViewport);
 
 const game       = document.getElementById("game");
 const levelEl    = document.getElementById("level");
@@ -666,6 +693,14 @@ setInterval(drawHud,500);
 
 /* ══ DRAW ══ */
 function drawWorld(){
+    if(CELL_SIZE !== 14 || VIEW_W !== 60) {
+    VIEW_W = 60;
+    VIEW_H = 36;
+    CELL_SIZE = 14;
+  }
+  
+  game.innerHTML="";
+  game.style.gridTemplateColumns=`repeat(${VIEW_W},${CELL_SIZE}px)`;
   game.innerHTML="";
   game.style.gridTemplateColumns=`repeat(${VIEW_W},${CELL_SIZE}px)`;
   const{cx,cy}=getCamera();
