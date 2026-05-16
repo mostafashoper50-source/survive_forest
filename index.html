@@ -6,245 +6,238 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <title>Final Survival Game</title>
 <style>
-  /* المؤثرات البصرية - VFX */
-#vfxOverlay {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 9998;
-    transition: background 0.3s;
+/* ══ VFX ══ */
+#vfxOverlay{position:fixed;inset:0;pointer-events:none;z-index:9998;transition:background 0.3s;}
+body.vfx-bleeding #vfxOverlay{background:radial-gradient(circle,transparent 50%,rgba(180,0,0,0.4) 100%);animation:vfxP 0.8s infinite alternate;}
+body.vfx-poison   #vfxOverlay{background:radial-gradient(circle,transparent 50%,rgba(0,180,0,0.4) 100%);animation:vfxP 1.2s infinite alternate;}
+body.vfx-burning  #vfxOverlay{background:radial-gradient(circle,transparent 50%,rgba(255,80,0,0.4) 100%);animation:vfxP 0.5s infinite alternate;}
+body.vfx-frost    #vfxOverlay{background:radial-gradient(circle,transparent 55%,rgba(0,150,255,0.4) 100%);animation:vfxP 2s infinite alternate;}
+body.vfx-blind    #vfxOverlay{background:rgba(0, 0, 0, 0.6);}
+body.vfx-weakness #vfxOverlay{background:radial-gradient(circle,transparent 40%,rgba(100,0,100,0.4) 100%);animation:vfxP 2s infinite alternate;}
+body.vfx-corruption #vfxOverlay{background:radial-gradient(circle,transparent 40%,rgba(100,0,150,0.55) 100%);animation:vfxP 0.7s infinite alternate;}
+@keyframes vfxP{from{opacity:0.5;}to{opacity:1;}}
+
+/* ══ PAGE ══ */
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{
+  width:100%;height:100%;overflow:hidden;
+  background:radial-gradient(circle,#0b3d0b,#000);
+  display:flex;flex-direction:column;
+  justify-content:flex-start;align-items:center;
+  color:#cfffcc;font-family:Arial,sans-serif;
+  position:fixed;touch-action:none;
 }
 
-/* تأثير النزيف (أحمر) */
-body.vfx-bleeding #vfxOverlay {
-    background: radial-gradient(circle, transparent 50%, rgba(180,0,0,0.4) 100%);
-    animation: vfxPulse 0.8s infinite alternate;
+/* ══ GAME WRAPPER ══ */
+#gameWrapper{
+  display:flex;flex-direction:row;
+  align-items:flex-start;justify-content:center;
+  width:100%;height:100%;
+  overflow:hidden;
 }
 
-/* تأثير التسمم (أخضر) */
-body.vfx-poison #vfxOverlay {
-    background: radial-gradient(circle, transparent 50%, rgba(0,180,0,0.4) 100%);
-    animation: vfxPulse 1.2s infinite alternate;
+/* ══ GAME ══ */
+#game{
+  display:grid;gap:0;background:#021;
+  padding:2px;border:2px solid lime;
+  overflow:hidden;flex-shrink:0;
+  box-sizing:border-box;z-index:5;
+}
+.cell{
+  display:flex;justify-content:center;align-items:center;
+  font-size:9px;line-height:1;overflow:hidden;
 }
 
-/* تأثير الحرق (برتقالي) */
-body.vfx-burning #vfxOverlay {
-    background: radial-gradient(circle, transparent 50%, rgba(255,80,0,0.4) 100%);
-    animation: vfxPulse 0.5s infinite alternate;
+/* ══ HUD ══ */
+#hud{
+  width:190px;min-width:150px;height:100vh;
+  background:rgba(0,0,0,0.92);
+  padding:10px;border-right:2px solid #0f0;
+  font-size:12px;box-sizing:border-box;
+  z-index:100;overflow-y:auto;flex-shrink:0;
+  order:-1;
+}
+.bar-wrap{background:#111;border-radius:4px;height:9px;margin-bottom:5px;overflow:hidden;}
+.bar{height:9px;background:lime;transition:width 0.3s;border-radius:4px;}
+
+/* ══ MOBILE CONTROLS ══ */
+#mobile-controls{
+  display:none;flex-direction:column;
+  align-items:center;gap:6px;
+  padding:4px 0;flex-shrink:0;z-index:110;
+  user-select:none;width:100%;
+}
+.ctrl-row{display:flex;gap:10px;justify-content:center;}
+.ctrl-btn{
+  width:52px;height:52px;
+  background:rgba(0,255,0,0.12);
+  border:2px solid lime;color:lime;
+  border-radius:50%;font-size:18px;
+  display:flex;justify-content:center;align-items:center;
+  touch-action:manipulation;-webkit-touch-callout:none;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;
+}
+.ctrl-btn:active{background:lime;color:#000;}
+#btn-pause{border-radius:10px;width:44px;height:30px;font-size:12px;}
+
+/* ══ PAUSE MENU ══ */
+#pauseMenu{
+  display:none;position:fixed;
+  top:10px;left:10px;width:165px;
+  background:rgba(0,8,0,0.97);
+  border:2px solid lime;border-radius:12px;
+  box-shadow:0 0 20px rgba(0,255,0,0.3);
+  z-index:99998;flex-direction:column;
+  align-items:center;gap:8px;padding:14px 10px;
+}
+#pauseMenu h2{color:lime;font-size:20px;margin-bottom:4px;}
+#pauseInfo{color:#aaa;font-size:10px;text-align:center;line-height:1.5;margin-bottom:4px;}
+.pmBtn{
+  width:145px;padding:8px 0;border-radius:8px;
+  cursor:pointer;font-size:13px;text-align:center;
+  border:1.5px solid lime;background:rgba(0,40,0,0.8);color:#cfffcc;
+}
+.pmBtn:active{background:lime;color:#000;}
+.pmBtn.red{border-color:#f44;background:rgba(40,0,0,0.8);}
+
+/* ══ ALERTS ══ */
+.game-alert{
+  position:fixed;top:10px;left:50%;transform:translateX(-50%);
+  z-index:9999;opacity:0;pointer-events:none;transition:opacity 0.15s;
+}
+.game-alert.show{opacity:1;}
+.alert-box{
+  background:rgba(2,20,2,0.92);border:1.5px solid lime;
+  padding:5px 14px;text-align:center;color:#cfffcc;
+  border-radius:10px;box-shadow:0 0 14px rgba(0,255,0,0.3);white-space:nowrap;
+}
+.alert-box h2{margin:0;font-size:12px;}
+.alert-box p{margin:2px 0 0;font-size:10px;}
+
+/* ══ XRAY ALERT ══ */
+#xrayAlert{
+  display:none;position:fixed;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  background:rgba(60,0,80,0.95);border:2px solid #a020f0;
+  border-radius:12px;padding:14px 28px;text-align:center;
+  z-index:9997;color:#d0a0ff;font-size:14px;
+  box-shadow:0 0 30px rgba(160,32,240,0.6);
+  animation:xrayP 0.6s infinite alternate;
+}
+@keyframes xrayP{from{box-shadow:0 0 20px rgba(160,32,240,0.4);}to{box-shadow:0 0 50px rgba(160,32,240,0.9);}}
+
+/* ══ GAME OVER ══ */
+#gameOverScreen{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,0.9);z-index:99999;
+  justify-content:center;align-items:center;flex-direction:column;gap:14px;
+}
+#gameOverScreen.show{display:flex;}
+#gameOverScreen h1{color:#f44;font-size:48px;text-shadow:0 0 30px #f00;animation:pulse 0.8s infinite alternate;}
+#gameOverScreen p{color:#aaa;font-size:15px;}
+#retryBtn{
+  background:linear-gradient(145deg,#062b06,#021a02);
+  border:2px solid lime;color:#cfffcc;
+  font-size:18px;padding:10px 32px;border-radius:10px;cursor:pointer;
+}
+@keyframes pulse{from{text-shadow:0 0 20px #f00;}to{text-shadow:0 0 50px #f00,0 0 80px #f44;}}
+/* Hallucination VFX */
+body.vfx-hallucination #vfxOverlay{background:radial-gradient(circle,transparent 30%,rgba(80,0,120,0.35) 70%,rgba(120,0,80,0.45) 100%);animation:vfxP 1.5s infinite alternate;}
+body.vfx-hallucination1 #game{animation:halluWave 2.5s ease-in-out infinite;}
+@keyframes halluWave{
+  0%,100%{transform:skewX(0deg) skewY(0deg);}
+  20%{transform:skewX(1.5deg) skewY(0.4deg);}
+  50%{transform:skewX(-1deg) skewY(-0.3deg);}
+  75%{transform:skewX(0.8deg) skewY(0.3deg);}
+}
+@keyframes halluShake{
+  0%,100%{transform:translate(0,0) rotate(0deg);}
+  15%{transform:translate(-5px,4px) rotate(-1.5deg);}
+  30%{transform:translate(5px,-4px) rotate(1.5deg);}
+  45%{transform:translate(-3px,5px) rotate(-0.8deg);}
+  60%{transform:translate(4px,-3px) rotate(1deg);}
+  80%{transform:translate(-2px,3px) rotate(-0.5deg);}
+}
+.hallucination-alert{
+  position:fixed;background:rgba(60,0,80,0.96);border:2px solid #a020f0;
+  border-radius:10px;padding:8px 12px;color:#f0c;font-size:12px;font-weight:bold;
+  z-index:99990;text-align:center;animation:halluShake 0.35s infinite;pointer-events:none;
+  box-shadow:0 0 24px rgba(160,32,240,0.9);
 }
 
-/* تأثير الفساد (أرجواني أسود) */
-body.vfx-corruption #vfxOverlay {
-    background: radial-gradient(circle, transparent 50%, rgba(100,0,150,0.5) 100%);
-    animation: vfxPulse 1s infinite alternate;
+
+/* ══ RESPONSIVE ══ */
+@media (max-width:768px){
+  #gameWrapper{flex-direction:column;align-items:center;justify-content:flex-start;height:auto;}
+  #hud{
+    width:100vw;height:auto;min-height:0;
+    border-left:none;border-top:2px solid #0f0;
+    padding:6px 10px;
+    display:flex;flex-wrap:wrap;gap:6px;align-items:flex-start;
+    overflow-y:visible;flex-shrink:0;
+  }
+  #hud-main{min-width:110px;flex:0 0 auto;}
+  #hud-effects{flex:1;min-width:120px;max-height:80px;overflow-y:auto;}
+  #hud-items{flex:1;min-width:90px;}
+  #mobile-controls{display:flex !important;}
 }
-
-@keyframes vfxPulse {
-    from { opacity: 0.5; }
-    to { opacity: 1; }
-}
-
-/* ══ 1. إعدادات الصفحة والخلفية الثابتة ══ */
-html, body {
-    margin: 0;
-    padding: 0;
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
-    background: radial-gradient(circle, #0b3d0b, #000) !important;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    color: #cfffcc;
-    font-family: Arial, sans-serif;
-    position: fixed;
-    touch-action: none;
-}
-
-/* ══ 2. منطقة اللعبة (الماب) ══ */
-#game {
-    display: grid;
-    gap: 0;
-    background: #021;
-    padding: 4px;
-    border: 2px solid lime;
-    overflow: hidden;
-    max-width: 95vw;
-    max-height: 60vh;
-    box-sizing: border-box;
-    z-index: 5;
-}
-
-.cell {
-    width: 14px;
-    height: 14px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 10px;
-    box-shadow: inset 0 0 0 0.3px rgba(0,0,0,0.1);
-    line-height: 1;
-}
-
-/* ══ 3. القائمة الجانبية (HUD) ══ */
-#hud {
-    position: fixed;
-    right: 0;
-    top: 0;
-    width: 210px;
-    height: 100vh;
-    background: rgba(0,0,0,0.85);
-    padding: 15px;
-    border-left: 2px solid #0f0;
-    font-size: 13px;
-    box-sizing: border-box;
-    z-index: 100;
-    overflow-y: auto;
-}
-
-.bar-wrap {
-    background: #111;
-    border-radius: 4px;
-    height: 10px;
-    margin-bottom: 8px;
-    overflow: hidden;
-}
-
-.bar {
-    height: 10px;
-    background: lime;
-    transition: width 0.3s;
-}
-
-/* ══ 4. أزرار التحكم (للموبايل) ══ */
-#mobile-controls {
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    margin-top: 15px;
-    user-select: none;
-    z-index: 110;
-}
-
-.row { display: flex; gap: 15px; }
-
-.ctrl-btn {
-    width: 60px;
-    height: 60px;
-    background: rgba(0, 255, 0, 0.15);
-    border: 2px solid lime;
-    color: lime;
-    border-radius: 50%;
-    font-size: 22px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    touch-action: manipulation;
-}
-
-.ctrl-btn:active {
-    background: lime;
-    color: #000;
-}
-
-/* ══ 5. شاشات التنبيه والنهاية ══ */
-.game-alert {
-    position: fixed;
-    top: 12px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 9999;
-    opacity: 0;
-    background-color: #000;
-    border-radius: 50px;
-    text-align: center;
-    border: 1px solid white;
-    width: 200px;
-    transition: opacity 0.15s;
-    padding: 8px;
-}
-.game-alert.show { opacity: 1; }
-
-#gameOverScreen {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.9);
-    z-index: 99999;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-}
-#gameOverScreen.show { display: flex; }
-
-/* ══ 6. التجاوب مع الهاتف (Responsive) ══ */
-@media (max-width: 768px) {
-    #hud {
-        position: relative;
-        width: 95vw;
-        height: auto;
-        border-left: none;
-        border-top: 2px solid #0f0;
-        margin-top: 10px;
-        order: 2;
-    }
-
-    #game {
-        max-height: 45vh;
-        order: 1;
-    }
-
-    #mobile-controls {
-        display: flex;
-        order: 3;
-        margin-bottom: 10px;
-    }
-
-    .cell {
-        width: 11px;
-        height: 11px;
-    }
-}
-
-.collect-popup {
-    position: absolute;
-    color: #ffd700;
-    font-weight: bold;
-    font-size: 14px;
-    pointer-events: none;
-    z-index: 1000;
-    animation: floatUp 0.8s ease-out forwards;
-    text-shadow: 1px 1px 2px #000;
-}
-
-@keyframes floatUp {
-    0% { transform: translateY(0); opacity: 1; }
-    100% { transform: translateY(-30px); opacity: 0; }
+@media (min-width:769px) and (max-width:1200px){
+  #hud{width:175px;font-size:11px;}
 }
 </style>
 </head>
 <body>
 
-<div id="game"></div>
-<div id="mobile-controls">
-    <div class="row"><button class="ctrl-btn" id="btn-up"><i class="fas fa-chevron-up"></i></button></div>
-    <div class="row">
-        <button class="ctrl-btn" id="btn-left"><i class="fas fa-chevron-left"></i></button>
-        <button class="ctrl-btn" id="btn-down"><i class="fas fa-chevron-down"></i></button>
-        <button class="ctrl-btn" id="btn-right"><i class="fas fa-chevron-right"></i></button>
-    </div>
+<div id="gameWrapper">
+<!-- HUD -->
+<div id="hud">
+  <div id="hud-main">
+    <div style="font-size:13px;font-weight:bold;color:lime;margin-bottom:4px">🏆 Level: <span id="level">1</span></div>
+    <div style="font-size:11px;margin-bottom:2px">❤️ HP</div>
+    <div class="bar-wrap"><div class="bar" id="hpBar"></div></div>
+    <div id="boostBarWrap" class="bar-wrap" style="display:none;margin-top:2px;background:rgba(255,0,170,0.15);"><div id="boostBar" style="height:9px;background:linear-gradient(90deg,#f0a,#f5f);transition:width 0.5s;border-radius:4px;width:0%"></div></div>
+  </div>
+  <div id="hud-effects"><div id="effectsHud"></div></div>
+  <hr style="border-color:#0f04;margin:4px 0;width:100%">
+  <div id="hud-items"><div id="itemsHud"></div></div>
 </div>
+<div id="gameSide" style="display:flex;flex-direction:column;align-items:center;justify-content:flex-start;flex:1;overflow:hidden;">
+<div id="game"></div>
+
+<!-- Mobile Controls -->
+<div id="mobile-controls">
+  <div class="ctrl-row">
+    <button class="ctrl-btn" id="btn-pause"><i class="fas fa-pause"></i></button>
+  </div>
+  <div class="ctrl-row">
+    <button class="ctrl-btn" id="btn-up"><i class="fas fa-chevron-up"></i></button>
+  </div>
+  <div class="ctrl-row">
+    <button class="ctrl-btn" id="btn-left"><i class="fas fa-chevron-left"></i></button>
+    <button class="ctrl-btn" id="btn-down"><i class="fas fa-chevron-down"></i></button>
+    <button class="ctrl-btn" id="btn-right"><i class="fas fa-chevron-right"></i></button>
+  </div>
+</div>
+</div><!-- end gameSide -->
+</div><!-- end gameWrapper -->
+
 <div id="vfxOverlay"></div>
 
-<div id="hud">
-  <div style="margin-bottom:4px">🏆 Level: <span id="level"></span></div>
-  <div>❤️ HP</div>
-  <div class="bar-wrap"><div class="bar" id="hpBar"></div></div>
-  <div id="effectsHud" style="min-height:30px;margin-bottom:6px"></div>
-  <hr style="border-color:#0f04;margin:4px 0">
-  <div id="itemsHud"></div>
+<!-- Pause Menu -->
+<div id="pauseMenu">
+  <h2>⏸️ PAUSED</h2>
+  <div id="pauseInfo"></div>
+  <button class="pmBtn" onclick="togglePause()">▶️ Resume</button>
+  <button class="pmBtn" onclick="resetLevel()">🔁 Reset Level</button>
+  <button class="pmBtn red" onclick="resetGame()">🔄 Reset Game</button>
+</div>
+
+<!-- XRay Alert -->
+<div id="xrayAlert">
+  <div style="font-size:20px">👁️</div>
+  <b>CORRUPTED MONSTER</b><br>
+  <span style="font-size:11px">Seeing you!</span><br>
+  <span id="xrayCountdown" style="font-size:22px;color:#f0c;font-weight:bold">4</span>
 </div>
 
 <div id="gameOverScreen">
@@ -261,388 +254,278 @@ html, body {
 </div>
 
 <script>
-const W=60, H=120, VIEW_W=60, VIEW_H=36;
+const W=60, H=120;
+let VIEW_W=60, VIEW_H=30, CELL_SIZE=14;
 
-const game        = document.getElementById("game");
-const levelEl     = document.getElementById("level");
-const hpBar       = document.getElementById("hpBar");
-const itemsHud    = document.getElementById("itemsHud");
-const effectsHudEl= document.getElementById("effectsHud");
+function calcViewport(){
+  const sw=window.innerWidth, sh=window.innerHeight;
+  const isMobile=sw<=768;
+  const isTablet=sw>768&&sw<=1200;
+  if(isMobile){
+    /* هاتف: HUD تحت الماب، أزرار تحت الـ HUD */
+    let hudH=Math.min(90,sh*0.12);
+    let ctrlH=Math.min(140,sh*0.22);
+    let availW=sw-8;
+    let availH=sh-hudH-ctrlH-16;
+    CELL_SIZE=Math.max(8,Math.min(13,Math.floor(availW/W)));
+    VIEW_W=Math.min(W,Math.floor(availW/CELL_SIZE));
+    VIEW_H=Math.min(H,Math.floor(availH/CELL_SIZE));
+  } else if(isTablet){
+    /* تابليت: HUD جانبي ضيق */
+    let availW=sw-180-8;
+    let availH=sh-20;
+    CELL_SIZE=Math.max(10,Math.min(14,Math.floor(availW/W)));
+    VIEW_W=Math.min(W,Math.floor(availW/CELL_SIZE));
+    VIEW_H=Math.min(H,Math.floor(availH/CELL_SIZE));
+  } else {
+    /* ديسكتوب/لاب توب */
+    let availW=sw-220;
+    let availH=sh-20;
+    CELL_SIZE=Math.max(12,Math.min(16,Math.floor(Math.min(availW/W,availH/36))));
+    VIEW_W=Math.min(W,Math.floor(availW/CELL_SIZE));
+    VIEW_H=Math.min(H,Math.floor(availH/CELL_SIZE));
+  }
+}
+calcViewport();
 
-/* 🖼️ صور الوحوش */
+const game       = document.getElementById("game");
+const levelEl    = document.getElementById("level");
+const hpBar      = document.getElementById("hpBar");
+const itemsHud   = document.getElementById("itemsHud");
+const effectsHudEl = document.getElementById("effectsHud");
+
+/* ══ MONSTER IMAGES ══ */
 const monsterImgs={
-  normal: "",
-  fire:   "./IMAGES/9e78383488055714c4d2581476472990.JPG",
-  ice:    "./IMAGES/3f2375a8e947bf2d2a32eb394b74a094.JPG",
-  corruption: "./IMAGES/corruption_monster.png" // ضع صورة الوحش هنا
+  normal:"",
+  fire:"./IMAGES/9e78383488055714c4d2581476472990.JPG",
+  ice:"./IMAGES/3f2375a8e947bf2d2a32eb394b74a094.JPG",
+  corruption:"./IMAGES/e14e65d09a00866ba47f7c3ae020f6b8.jpg",
+  infected:"./IMAGES/3c5e2c1b344c4bebaddc18ec1065d0f9.jpg" /* ← صورة infected monster */
 };
 
+/* ══ STATE ══ */
 let world=[], player={x:1,y:1}, monsters=[];
 let stage=1, hp=100, vision=5;
 let shield=false, paused=false;
 let hitCooldown=false, levelCleared=false;
-
-/* ══ EFFECTS ══ */
 let activeEffects={};
-let corruptionLevel=0, corruptionHitCount=0, corruptionInterval=null;
-
 let stepSize=1, magicShieldActive=false, magnetActive=false, strengthActive=false;
 let speedLevel=0, speedStepsLeft=0, speedHoldActive=false;
 let onLava=false;
 let bleedLevel=0, bleedInterval=null, bleedHitCount=0;
-let poisonLevel=0, poisonHitCount=0;
+let poisonLevel=0, poisonHitCount=0, poisonInterval=null;
 let frostLevel=0, frostHitCount=0, frostInterval=null;
-let burnLevel=0;
+let burnLevel=0, burningInterval=null;
+let corruptLevel=0, corruptHitCount=0, corruptInterval=null;
 let lavaImmune=false, ghostMode=false, luckyMode=false;
-let invincibleMode=false, weaknessActive=false;
-let poisonInterval=null, burningInterval=null, freezeMonsters=false;
+let invincibleMode=false, weaknessActive=false, freezeMonsters=false;
+let currentChase=null, closestDistCache=99;
+let xrayActive=false;
+let pausedAt=0;
+let fireProtectionActive=false;
+let healUpInterval=null;
+let healthBoost=0;
+let strengthLevel=1;
+let activeTraps=[];
+let halluFakeItems=[];
+let halluFakeMonsters=[];
+let halluInterval=null;
 
+/* ══ EFFECT DEFS ══ */
 const EFFECT_DEFS={
-  freeze:{
-    emoji:"🧊",label:"Freeze",good:true,
-    apply:()=>{ freezeMonsters=true; },
-    remove:()=>{ freezeMonsters=false; }
-  },
-  burning:{
-    emoji:"🔥",label:"Burning",good:false,
-    apply:()=>{},
-    remove:()=>{ clearInterval(burningInterval); burningInterval=null; }
-  },
-  corruption:{
-    emoji:"🟣",label:"Corruption",good:false,
-    apply:()=>{},
-    remove:()=>{ clearInterval(corruptionInterval); corruptionInterval=null; corruptionLevel=0; corruptionHitCount=0; }
-  },
-  speed:{
-    emoji:"⚡",label:"Speed",good:true,
-    apply:()=>{ speedHoldActive=false; },
-    remove:()=>{ speedLevel=0; speedStepsLeft=0; stepSize=1; }
-  },
-  magicShield:{
-    emoji:"🔮",label:"Magic Shield",good:true,
-    apply:()=>{ magicShieldActive=true; },
-    remove:()=>{ magicShieldActive=false; }
-  },
-  magnet:{
-    emoji:"🧲",label:"Magnet",good:true,
-    apply:()=>{ magnetActive=true; },
-    remove:()=>{ magnetActive=false; }
-  },
-  reveal:{
-    emoji:"🗺️",label:"Reveal",good:true,
-    apply:()=>{ vision=99; },
-    remove:()=>{ vision=5; }
-  },
-  lavaImmunity:{
-    emoji:"🌋",label:"Lava Immunity",good:true,
-    apply:()=>{ lavaImmune=true; },
-    remove:()=>{ lavaImmune=false; }
-  },
-  ghost:{
-    emoji:"👻",label:"Ghost",good:true,
-    apply:()=>{ ghostMode=true; },
-    remove:()=>{ ghostMode=false; }
-  },
-  lucky:{
-    emoji:"⭐",label:"Lucky",good:true,
-    apply:()=>{ luckyMode=true; },
-    remove:()=>{ luckyMode=false; }
-  },
-  invincible:{
-    emoji:"💫",label:"Invincible",good:true,
-    apply:()=>{ invincibleMode=true; },
-    remove:()=>{ invincibleMode=false; }
-  },
-  weakness:{
-    emoji:"💀",label:"Weakness",good:false,
-    apply:()=>{ weaknessActive=true; },
-    remove:()=>{ weaknessActive=false; }
-  },
-  shield:{
-    emoji:"🛡️",label:"Shield",good:true,
-    apply:()=>{ shield=true; },
-    remove:()=>{ shield=false; }
-  },
-  strength:{
-    emoji:"💪",label:"Strength",good:true,
-    apply:()=>{ strengthActive=true; },
-    remove:()=>{ strengthActive=false; }
-  },
-  blind:{
-    emoji:"🌫️",label:"Blind",good:false,
-    apply:()=>{ vision=2; },
-    remove:()=>{ vision=5; }
-  },
-  frost:{
-    emoji:"❄️",label:"Frost",good:false,
-    apply:()=>{},
-    remove:()=>{ clearInterval(frostInterval); frostInterval=null; frostLevel=0; frostHitCount=0; }
-  },
-  bleeding:{
-    emoji:"🩸",label:"Bleeding",good:false,
-    apply:()=>{},
-    remove:()=>{ clearInterval(bleedInterval); bleedInterval=null; bleedLevel=0; bleedHitCount=0; }
-  },
-  poison:{
-    emoji:"☠️",label:"Poison",good:false,
-    apply:()=>{},
-    remove:()=>{ clearInterval(poisonInterval); poisonInterval=null; poisonLevel=0; poisonHitCount=0; }
-  }
+  freeze:{emoji:"🧊",label:"Freeze",good:true,apply:()=>{freezeMonsters=true;},remove:()=>{freezeMonsters=false;/* no lingering effect */}},
+  burning:{emoji:"🔥",label:"Burning",good:false,apply:()=>{},remove:()=>{clearInterval(burningInterval);burningInterval=null;}},
+  corruption:{emoji:"🟣",label:"Corruption",good:false,apply:()=>{},remove:()=>{clearInterval(corruptInterval);corruptInterval=null;corruptLevel=0;corruptHitCount=0;}},
+  speed:{emoji:"⚡",label:"Speed",good:true,apply:()=>{speedHoldActive=false;},remove:()=>{speedLevel=0;speedStepsLeft=0;stepSize=1;}},
+  magicShield:{emoji:"🔮",label:"Magic Shield",good:true,apply:()=>{magicShieldActive=true;},remove:()=>{magicShieldActive=false;}},
+  magnet:{emoji:"🧲",label:"Magnet",good:true,apply:()=>{magnetActive=true;},remove:()=>{magnetActive=false;}},
+  reveal:{emoji:"🗺️",label:"Reveal",good:true,apply:()=>{vision=99;},remove:()=>{vision=5;}},
+  fireProtection:{emoji:"🔥🛡️",label:"Fire Protection",good:true,apply:()=>{lavaImmune=true;fireProtectionActive=true;},remove:()=>{lavaImmune=false;fireProtectionActive=false;}},
+  ghost:{emoji:"👻",label:"Ghost",good:true,apply:()=>{ghostMode=true;},remove:()=>{ghostMode=false;}},
+  lucky:{emoji:"⭐",label:"Lucky",good:true,apply:()=>{luckyMode=true;},remove:()=>{luckyMode=false;}},
+  invincible:{emoji:"💫",label:"Invincible",good:true,apply:()=>{invincibleMode=true;},remove:()=>{invincibleMode=false;}},
+  weakness:{emoji:"💀",label:"Weakness",good:false,apply:()=>{weaknessActive=true;},remove:()=>{weaknessActive=false;}},
+  shield:{emoji:"🛡️",label:"Shield",good:true,apply:()=>{shield=true;},remove:()=>{shield=false;}},
+  strength:{emoji:"💪",label:"Strength I",good:true,apply:()=>{strengthActive=true;strengthLevel=1;},remove:()=>{strengthActive=false;strengthLevel=1;}},
+  blind:{emoji:"🌫️",label:"Blind",good:false,apply:()=>{vision=2;},remove:()=>{vision=5;}},
+  frost:{emoji:"❄️",label:"Frost",good:false,apply:()=>{},remove:()=>{clearInterval(frostInterval);frostInterval=null;frostLevel=0;frostHitCount=0;}},
+  bleeding:{emoji:"🩸",label:"Bleeding",good:false,apply:()=>{},remove:()=>{clearInterval(bleedInterval);bleedInterval=null;bleedLevel=0;bleedHitCount=0;}},
+  poison:{emoji:"☠️",label:"Poison",good:false,apply:()=>{},remove:()=>{clearInterval(poisonInterval);poisonInterval=null;poisonLevel=0;poisonHitCount=0;}},
+  regenI:{emoji:"💚",label:"Regeneration I",good:true,apply:()=>{},remove:()=>{clearInterval(healUpInterval);healUpInterval=null;}},
+  regenII:{emoji:"💚💚",label:"Regeneration II",good:true,apply:()=>{},remove:()=>{clearInterval(healUpInterval);healUpInterval=null;}},
+  strengthII:{emoji:"💪💪",label:"Strength II",good:true,apply:()=>{strengthActive=true;strengthLevel=2;},remove:()=>{strengthActive=false;strengthLevel=1;}},
+  strengthIII:{emoji:"💪💪💪",label:"Strength III",good:true,apply:()=>{strengthActive=true;strengthLevel=3;},remove:()=>{strengthActive=false;strengthLevel=1;}},
+  healthBoostI:{emoji:"❤️+",label:"Health Boost I",good:true,apply:()=>{healthBoost=25;},remove:()=>{healthBoost=0;}},
+  healthBoostII:{emoji:"❤️++",label:"Health Boost II",good:true,apply:()=>{healthBoost=50;},remove:()=>{healthBoost=0;}},
+  healthBoostIII:{emoji:"❤️+++",label:"Health Boost III",good:true,apply:()=>{healthBoost=100;},remove:()=>{healthBoost=0;}},
+  hallucinationI:{emoji:"🌀",label:"Hallucination I",good:false,apply:()=>{},remove:()=>{clearInterval(halluInterval);halluInterval=null;halluFakeItems=[];}},
+  hallucinationII:{emoji:"🌀🌀",label:"Hallucination II",good:false,apply:()=>{},remove:()=>{clearInterval(halluInterval);halluInterval=null;halluFakeItems=[];halluFakeMonsters=[];}},
+  hallucinationIII:{emoji:"🌀🌀🌀",label:"Hallucination III",good:false,apply:()=>{},remove:()=>{clearInterval(halluInterval);halluInterval=null;halluFakeMonsters=[];}}
 };
 
-const QUESTION_EFFECTS=["weakness","magicShield","blind","magnet","reveal","lavaImmunity","ghost","lucky","invincible"];
+const QUESTION_EFFECTS=["weakness","magicShield","blind","magnet","reveal","fireProtection","ghost","lucky","invincible","strengthIII","healthBoostI","healthBoostII","healthBoostIII"];
 
-/* ══ CORRUPTION SYSTEM ══ */
-function getCorruptionDPS(lvl){ return lvl===1?2:lvl===2?5:8; }
-function getLevelDur(lvl){ return lvl===1?10000:lvl===2?8000:6000; }
+/* ══ HELPERS ══ */
+function getRoman(l){return l===1?"I":l===2?"II":"III";}
+function getBleedDPS(l){return l===1?2:l===2?4:7;}
+function getPoisonDPS(l){return l===1?3:l===2?6:10;}
+function getBurnDPS(l){return l===1?3:l===2?5:8;}
+function getFrostDPS(l){return l===1?2:l===2?4:7;}
+function getCorruptDPS(l){return l===1?2:l===2?5:9;}
+function getLevelDur(l){return l===1?10000:l===2?8000:6000;}
 
-function startCorruption(){
-  corruptionHitCount++;
-  let newLevel = corruptionLevel;
-  if(hp < 30 || corruptionHitCount >= 3)      newLevel=3;
-  else if(hp < 60 || corruptionHitCount >= 2) newLevel=2;
-  else                                        newLevel=1;
 
-  corruptionLevel = newLevel;
+/* ══ EFFECT OPPOSITION MATH ══ */
+const EFFECT_OPP_LEVEL={"strength":1,"strengthII":2,"strengthIII":3,"weakness":1,"blind":1,"reveal":1};
+const EFFECT_OPP_PAIRS=[
+  {a:["strength","strengthII","strengthIII"], b:["weakness"]},
+  {a:["blind"], b:["reveal"]}
+];
+const STRENGTH_BY_LVL=["","strength","strengthII","strengthIII"];
 
-  clearInterval(corruptionInterval);
-  if(activeEffects["corruption"]) clearTimeout(activeEffects["corruption"].timer);
-
-  let dps = getCorruptionDPS(corruptionLevel);
-  let label = `Corruption ${getRoman(corruptionLevel)}`;
-
-  corruptionInterval=setInterval(()=>{
-    if(paused)return;
-    if(!activeEffects["corruption"]){clearInterval(corruptionInterval);corruptionInterval=null;return;}
-    hp-=dps;
-    ludki(`🟣 ${label}`,`−${dps} HP/s`,"damage");
-    if(hp<=0) triggerDeath(`Corrupted to death 🟣 ${getRoman(corruptionLevel)}`);
-    drawWorld();
-  },1000);
-
-  EFFECT_DEFS["corruption"].label=label;
-
-  let corruptionDur=getLevelDur(corruptionLevel);
-  activeEffects["corruption"]={
-    endTime: Date.now()+corruptionDur,
-    timer: setTimeout(()=>{
-      clearInterval(corruptionInterval); corruptionInterval=null;
-      corruptionLevel=0; corruptionHitCount=0;
-      delete activeEffects["corruption"];
-      drawHud();
-    },corruptionDur)
-  };
-  ludki(`🟣 Corruption ${getRoman(corruptionLevel)}`,"Watch out!","damage");
-  drawHud();
-}
-
-function getRoman(lvl){ return lvl===1?"I":lvl===2?"II":"III"; }
-function getBleedDPS(lvl){ return lvl===1?2:lvl===2?4:7; }
-function getPoisonDPS(lvl){ return lvl===1?3:lvl===2?6:10; }
-function getBurnDPS(lvl){ return lvl===1?3:lvl===2?5:8; }
-function getFrostDPS(lvl){ return lvl===1?2:lvl===2?4:7; }
-
-function applyEffect(name){
-  const def=EFFECT_DEFS[name];
-  if(!def) return;
-  if(activeEffects[name]){
-    clearTimeout(activeEffects[name].timer);
-    def.remove();
+function resolveOpposing(name){
+  for(let pair of EFFECT_OPP_PAIRS){
+    let inA=pair.a.includes(name), inB=pair.b.includes(name);
+    if(!inA&&!inB) continue;
+    let myGroup=inA?pair.a:pair.b, oppGroup=inA?pair.b:pair.a;
+    /* حساب مستوى الطرفين */
+    let myLvl=EFFECT_OPP_LEVEL[name]||1;
+    let oppActive=oppGroup.find(n=>activeEffects[n]);
+    if(!oppActive) continue;
+    let oppLvl=EFFECT_OPP_LEVEL[oppActive]||1;
+    /* إزالة الطرفين */
+    [...myGroup,...oppGroup].forEach(n=>{
+      if(activeEffects[n]){clearTimeout(activeEffects[n].timer);if(EFFECT_DEFS[n])EFFECT_DEFS[n].remove();delete activeEffects[n];}
+    });
+    let diff=myLvl-oppLvl;
+    if(diff>0){
+      /* الجديد أقوى: يبقى بمستوى diff */
+      let winner=pair.a.includes(name)?STRENGTH_BY_LVL[diff]:null;
+      if(winner&&EFFECT_DEFS[winner]) applyEffect(winner);
+      else if(!pair.a.includes(name)&&diff===1) applyEffect("weakness");
+    } else if(diff<0){
+      /* المعارض أقوى: يبقى بمستوى -diff */
+      let winner=pair.a.includes(oppActive)?STRENGTH_BY_LVL[-diff]:null;
+      if(winner&&EFFECT_DEFS[winner]) applyEffect(winner);
+      else if(!pair.a.includes(oppActive)&&-diff===1) applyEffect("weakness");
+    }
+    /* diff===0: كلاهما يختفي */
+    drawHud();
+    return true; /* تم الحل */
   }
-  const goodDurations={
-    freeze:7000, speed:8000, magicShield:10000, magnet:12000,
-    reveal:9000, lavaImmunity:15000, ghost:8000, lucky:10000,
-    invincible:7000, strength:10000, shield:8000
-  };
-  const badDurations={
-    weakness:10000, blind:5000, poison:8000, bleeding:10000, burning:7000
-  };
-  let duration = def.good
-    ? (goodDurations[name] || 7000)
-    : (badDurations[name]  || 5000);
+  return false;
+}
+/* ══ APPLY EFFECT ══ */
+function applyEffect(name){
+  const def=EFFECT_DEFS[name]; if(!def)return;
+  if(activeEffects[name]){clearTimeout(activeEffects[name].timer);def.remove();}
+  const goodDur={freeze:7000,speed:8000,magicShield:10000,magnet:12000,reveal:9000,fireProtection:15000,ghost:8000,lucky:10000,invincible:7000,strength:10000,shield:8000,regenI:6000,regenII:8000,strengthII:10000,strengthIII:12000,healthBoostI:15000,healthBoostII:15000,healthBoostIII:15000};
+  const badDur={weakness:10000,blind:5000,poison:8000,bleeding:10000,burning:7000,hallucinationI:12000,hallucinationII:15000,hallucinationIII:18000};
+  let dur=def.good?(goodDur[name]||7000):(badDur[name]||5000);
   def.apply();
-
   if(name==="poison"){
-    poisonHitCount++;
-    poisonLevel = poisonHitCount>=3?3:poisonHitCount>=2?2:1;
-    let pdps=getPoisonDPS(poisonLevel);
-    let pdur=getLevelDur(poisonLevel);
+    poisonHitCount++;poisonLevel=poisonHitCount>=3?3:poisonHitCount>=2?2:1;
+    let pdps=getPoisonDPS(poisonLevel),pdur=getLevelDur(poisonLevel);
     EFFECT_DEFS["poison"].label=`Poison ${getRoman(poisonLevel)}`;
     clearInterval(poisonInterval);
-    if(activeEffects["poison"]) clearTimeout(activeEffects["poison"].timer);
+    if(activeEffects["poison"])clearTimeout(activeEffects["poison"].timer);
     poisonInterval=setInterval(()=>{
-      if(paused)return;
-      if(!activeEffects["poison"]){clearInterval(poisonInterval);poisonInterval=null;return;}
-      hp-=pdps;
-      ludki(`☠️ Poison ${getRoman(poisonLevel)}`,`−${pdps} HP/s`,"damage");
-      if(hp<=0) triggerDeath(`Poisoned ☠️ ${getRoman(poisonLevel)}`);
-      drawWorld();
+      if(paused)return;if(!activeEffects["poison"]){clearInterval(poisonInterval);poisonInterval=null;return;}
+      hp-=pdps;ludki(`☠️ Poison ${getRoman(poisonLevel)}`,`−${pdps} HP/s`,"damage");
+      if(hp<=0)triggerDeath(`Poisoned ☠️`);drawWorld();
     },1000);
-    activeEffects[name]={
-      endTime:Date.now()+pdur,
-      timer:setTimeout(()=>{
-        EFFECT_DEFS["poison"].remove();
-        delete activeEffects["poison"];
-        drawHud();
-      },pdur)
-    };
-    ludki(`⚠️ Poison ${getRoman(poisonLevel)}`,"Watch out!","damage");
-    drawHud();
-    return;
+    activeEffects[name]={endTime:Date.now()+pdur,timer:setTimeout(()=>{EFFECT_DEFS["poison"].remove();delete activeEffects["poison"];drawHud();},pdur)};
+    ludki(`⚠️ Poison ${getRoman(poisonLevel)}`,"Watch out!","damage");drawHud();return;
   }
-
   if(name==="magnet"){
     let mInt=setInterval(()=>{
       if(!magnetActive){clearInterval(mInt);return;}
-      for(let dy=-3;dy<=3;dy++) for(let dx=-3;dx<=3;dx++){
+      for(let dy=-3;dy<=3;dy++)for(let dx=-3;dx<=3;dx++){
         let nx=player.x+dx,ny=player.y+dy;
         if(nx<0||ny<0||nx>=W||ny>=H)continue;
-        let cell=world[ny][nx];
-        if(itemTarget[cell]){
-          world[ny][nx]="empty";
-          itemCollected[cell]=(itemCollected[cell]||0)+(luckyMode?2:1);
-        }
+        if(itemTarget[world[ny][nx]]){world[ny][nx]="empty";itemCollected[world[ny][nx]||""]=(itemCollected[world[ny][nx]||""]||0)+(luckyMode?2:1);}
       }
     },500);
   }
-
-  activeEffects[name]={
-    endTime:Date.now()+duration,
-    timer:setTimeout(()=>{
-      def.remove();
-      delete activeEffects[name];
-      drawHud();
-    },duration)
-  };
-
-  ludki((def.good?"✅ ":"⚠️ ")+def.label,def.good?"Active!":"Watch out!",def.good?"collect":"damage");
-  drawHud();
+  activeEffects[name]={endTime:Date.now()+dur,timer:setTimeout(()=>{def.remove();delete activeEffects[name];drawHud();},dur)};
+  /* تحقق من التعارض */
+  if(!resolveOpposing(name)){
+    ludki((def.good?"✅ ":"⚠️ ")+def.label,def.good?"Active!":"Watch out!",def.good?"collect":"damage");
+    drawHud();
+  }
 }
 
 /* ══ SOUNDS ══ */
 const sounds={
-  start:   new Audio("./sounds/start.mp3"),
-  bg1:     new Audio("./sounds/bg1.m4a"),
-  bg2:     new Audio("./sounds/bg2.m4a"),
-  bg3:     new Audio("./sounds/bg3.m4a"),
-  /* Corruption Monster Music */
-  corruption_layer1: new Audio("./sounds/corruption_layer1.m4a"),
-  corruption_layer2: new Audio("./sounds/corruption_layer2.m4a"),
-  corruption_chase:  new Audio("./sounds/corruption_chase.m4a"),
-  normal_layer1: new Audio("./sounds/normal_layer1.m4a"),
-  normal_layer2: new Audio("./sounds/normal_layer2.m4a"),
-  normal_chase:  new Audio("./sounds/normal_chase.m4a"),
-  fire_layer1:   new Audio("./sounds/fire_layer1.m4a"),
-  fire_layer2:   new Audio("./sounds/fire_layer2.m4a"),
-  fire_chase:    new Audio("./sounds/fire_chase.m4a"),
-  ice_layer1:    new Audio("./sounds/ice_layer1.m4a"),
-  ice_layer2:    new Audio("./sounds/ice_layer2.m4a"),
-  ice_chase:     new Audio("./sounds/ice_chase.m4a"),
-  med:     new Audio("./sounds/drink_med.mp3"),
-  medkit:  new Audio("./sounds/using_medkit.mp3"),
-  gold:    new Audio("./sounds/collect_gold.mp3"),
-  diamond: new Audio("./sounds/collect_diamond.mp3"),
-  collect: new Audio("./sounds/collect.mp3"),
-  hit:     new Audio("./sounds/slash.mp3"),
-  level:   new Audio("./sounds/won.mp3"),
-  gameover:new Audio("./sounds/game_over.mp3"),
-  restart: new Audio("./sounds/restart.mp3"),
-  walk:    new Audio("./sounds/walk.mp3"),
-  burn:    new Audio("./sounds/burning.m4a"),
-  bleed:   new Audio("./sounds/bleeding.m4a"),
-  corruption_sound: new Audio("./sounds/corruption.mp3"),
-  effect:  new Audio("./sounds/effect.m4a")
+  start:new Audio("./sounds/start.mp3"),
+  bg1:new Audio("./sounds/bg1.m4a"),bg2:new Audio("./sounds/bg2.m4a"),bg3:new Audio("./sounds/bg3.m4a"),
+  corruption_layer1:new Audio("./sounds/corruption_layer1.m4a"),
+  corruption_layer2:new Audio("./sounds/corruption_layer2.m4a"),
+  corruption_chase:new Audio("./sounds/corruption_chase.m4a"),
+  normal_layer1:new Audio("./sounds/normal_layer1.m4a"),normal_layer2:new Audio("./sounds/normal_layer2.m4a"),normal_chase:new Audio("./sounds/normal_chase.m4a"),
+  fire_layer1:new Audio("./sounds/fire_layer1.m4a"),fire_layer2:new Audio("./sounds/fire_layer2.m4a"),fire_chase:new Audio("./sounds/fire_chase.m4a"),
+  ice_layer1:new Audio("./sounds/ice_layer1.m4a"),ice_layer2:new Audio("./sounds/ice_layer2.m4a"),ice_chase:new Audio("./sounds/ice_chase.m4a"),
+  med:new Audio("./sounds/drink_med.mp3"),medkit:new Audio("./sounds/using_medkit.mp3"),
+  gold:new Audio("./sounds/collect_gold.mp3"),diamond:new Audio("./sounds/collect_diamond.mp3"),collect:new Audio("./sounds/collect.mp3"),
+  hit:new Audio("./sounds/slash.mp3"),level:new Audio("./sounds/won.mp3"),
+  gameover:new Audio("./sounds/game_over.mp3"),restart:new Audio("./sounds/restart.mp3"),
+  walk:new Audio("./sounds/walk.mp3"),burn:new Audio("./sounds/burning.m4a"),
+  bleed:new Audio("./sounds/bleeding.m4a"),effect:new Audio("./sounds/effect.m4a"),
+  infected_layer1:new Audio("./sounds/infected_layer1.m4a"),
+  infected_layer2:new Audio("./sounds/infected_layer2.m4a"),
+  infected_chase:new Audio("./sounds/infected_chase.m4a"),
+  voidstar_sfx:new Audio("./sounds/voidstar.mp3"),
+  hallucination_sfx:new Audio("./sounds/hallucination.mp3")
 };
-
-for(let s in sounds) sounds[s].volume=0.6;
+for(let s in sounds)sounds[s].volume=0.6;
 sounds.walk.volume=0.25;
-sounds.bg1.loop=true; sounds.bg1.volume=0.35;
-sounds.bg2.loop=true; sounds.bg2.volume=0.35;
-sounds.bg3.loop=true; sounds.bg3.volume=0.35;
-
-/* Monster music loops */
-const MONSTER_TRACKS=["corruption_layer1","corruption_layer2","corruption_chase",
-                      "normal_layer1","normal_layer2","normal_chase",
-                      "fire_layer1","fire_layer2","fire_chase",
-                      "ice_layer1","ice_layer2","ice_chase"];
-for(let t of MONSTER_TRACKS){ 
-  sounds[t].loop=true; 
-  sounds[t].volume=0.6; 
-}
-
 const BG_TRACKS=[sounds.bg1,sounds.bg2,sounds.bg3];
+BG_TRACKS.forEach(b=>{b.loop=true;b.volume=0.35;});
+const MONSTER_TRACKS=["corruption_layer1","corruption_layer2","corruption_chase","normal_layer1","normal_layer2","normal_chase","fire_layer1","fire_layer2","fire_chase","ice_layer1","ice_layer2","ice_chase","infected_layer1","infected_layer2","infected_chase"];
+MONSTER_TRACKS.forEach(t=>{sounds[t].loop=true;sounds[t].volume=0.6;});
 const MONSTER_MUSIC={
-  corruption: {layer1:sounds.corruption_layer1, layer2:sounds.corruption_layer2, chase:sounds.corruption_chase},
-  normal: {layer1:sounds.normal_layer1, layer2:sounds.normal_layer2, chase:sounds.normal_chase},
-  fire:  {layer1:sounds.fire_layer1,   layer2:sounds.fire_layer2,   chase:sounds.fire_chase},
-  ice:   {layer1:sounds.ice_layer1,    layer2:sounds.ice_layer2,    chase:sounds.ice_chase}
+  corruption:{layer1:sounds.corruption_layer1,layer2:sounds.corruption_layer2,chase:sounds.corruption_chase},
+  normal:{layer1:sounds.normal_layer1,layer2:sounds.normal_layer2,chase:sounds.normal_chase},
+  fire:{layer1:sounds.fire_layer1,layer2:sounds.fire_layer2,chase:sounds.fire_chase},
+  ice:{layer1:sounds.ice_layer1,layer2:sounds.ice_layer2,chase:sounds.ice_chase},
+  infected:{layer1:sounds.infected_layer1,layer2:sounds.infected_layer2,chase:sounds.infected_chase}
 };
+const MUSIC=[...BG_TRACKS,...MONSTER_TRACKS.map(t=>sounds[t])];
+let currentBgTrack=sounds.bg1,currentMonsterTrack=null;
 
-const MUSIC=[sounds.bg1,sounds.bg2,sounds.bg3].concat(MONSTER_TRACKS.map(t=>sounds[t]));
-let currentBgTrack=sounds.bg1;
-let currentMonsterTrack=null;
-
-function stopAllMusic(){ for(let m of MUSIC){m.pause();m.currentTime=0;} }
-function playRandomBg(){
-  stopAllMusic();
-  currentBgTrack=BG_TRACKS[Math.floor(Math.random()*BG_TRACKS.length)];
-  currentBgTrack.currentTime=0;
-  currentBgTrack.play().catch(()=>{});
-}
-function playMonsterMusic(type, dist){
-  let group=MONSTER_MUSIC[type]||MONSTER_MUSIC.normal;
-  let track;
-  if(dist>=8)       track=group.layer1;
-  else if(dist>=4)  track=group.layer2;
-  else              track=group.chase;
-
-  if(track!==currentMonsterTrack){
-    for(let m of MUSIC) if(m!==track){m.pause();m.currentTime=0;}
-    currentMonsterTrack=track;
-    track.play().catch(()=>{});
+function stopAllMusic(){MUSIC.forEach(m=>{m.pause();m.currentTime=0;});}
+function playRandomBg(){stopAllMusic();currentBgTrack=BG_TRACKS[Math.floor(Math.random()*BG_TRACKS.length)];currentBgTrack.currentTime=0;currentBgTrack.play().catch(()=>{});}
+/* تتبع المقطع الحالي لكل نوع وحش */
+const activeTypeTrack={};
+function playMonsterMusic(type,dist){
+  let g=MONSTER_MUSIC[type]||MONSTER_MUSIC.normal;
+  let track=dist>=8?g.layer1:dist>=4?g.layer2:g.chase;
+  /* أوقف الـ BG */
+  BG_TRACKS.forEach(b=>{if(!b.paused){b.pause();b.currentTime=0;}});
+  /* لو نفس المقطع لنفس النوع شغال، اتركه */
+  if(activeTypeTrack[type]===track) return;
+  /* أوقف المقطع القديم لنفس النوع فقط */
+  if(activeTypeTrack[type]&&!activeTypeTrack[type].paused){
+    activeTypeTrack[type].pause();activeTypeTrack[type].currentTime=0;
   }
+  activeTypeTrack[type]=track;
+  if(track.paused) track.play().catch(()=>{});
+  currentMonsterTrack=track;
 }
-function playMusic(s){
-  if(!s)return;
-  for(let m of MUSIC){ if(m!==s){m.pause();m.currentTime=0;} }
-  if(s.paused) s.play().catch(()=>{});
-}
-function resumeBg(){ playMusic(currentBgTrack); }
-function playSound(s){
-  if(!s)return;
-  try{
-    let c=s.cloneNode();
-    c.volume=s.volume;
-    c.play().catch(()=>{});
-  }catch(e){}
-}
-function playSoundOnce(s){
-  if(!s)return;
-  if(s.paused||s.ended){ s.currentTime=0; s.play().catch(()=>{}); }
-}
-function stopChase(){
-  for(let t of MONSTER_TRACKS){ sounds[t].pause(); sounds[t].currentTime=0; }
-  currentMonsterTrack=null;
-}
+function playMusic(s){if(!s)return;MUSIC.forEach(m=>{if(m!==s){m.pause();m.currentTime=0;}});if(s.paused)s.play().catch(()=>{});}
+function resumeBg(){MONSTER_TRACKS.forEach(t=>{sounds[t].pause();sounds[t].currentTime=0;});currentMonsterTrack=null;if(currentBgTrack.paused){currentBgTrack.currentTime=0;currentBgTrack.play().catch(()=>{});}}
+function playSound(s){if(!s)return;try{let c=s.cloneNode();c.volume=s.volume;c.play().catch(()=>{});}catch(e){}}
+function playSoundOnce(s){if(!s)return;if(s.paused||s.ended){s.currentTime=0;s.play().catch(()=>{});}}
+function stopChase(){MONSTER_TRACKS.forEach(t=>{sounds[t].pause();sounds[t].currentTime=0;});currentMonsterTrack=null;}
 
 let audioUnlocked=false;
 function unlockAudio(){
-  if(audioUnlocked)return; audioUnlocked=true;
-  for(let s in sounds){
-    sounds[s].muted=true;
-    sounds[s].play().then(()=>{ sounds[s].pause(); sounds[s].muted=false; sounds[s].currentTime=0; }).catch(()=>{});
-  }
-  setTimeout(()=>{ playSound(sounds.start); setTimeout(()=>playRandomBg(),1500); },100);
+  if(audioUnlocked)return;audioUnlocked=true;
+  for(let s in sounds){sounds[s].muted=true;sounds[s].play().then(()=>{sounds[s].pause();sounds[s].muted=false;sounds[s].currentTime=0;}).catch(()=>{});}
+  setTimeout(()=>{playSound(sounds.start);setTimeout(()=>playRandomBg(),1500);},100);
 }
 document.addEventListener("click",unlockAudio,{once:true});
 document.addEventListener("keydown",unlockAudio,{once:true});
-
-/* ══ CAMERA SYSTEM ══ */
-function getCamera(){
-  let cx = Math.max(0, Math.min(W - VIEW_W, Math.floor(player.x - VIEW_W / 2)));
-  let cy = Math.max(0, Math.min(H - VIEW_H, Math.floor(player.y - VIEW_H / 2)));
-  return {cx, cy};
-}
 
 /* ══ ALERT ══ */
 let alertTimer;
@@ -650,828 +533,1179 @@ function ludki(title,text,type="normal"){
   document.getElementById("alertTitle").textContent=title;
   document.getElementById("alertText").textContent=text;
   const box=document.getElementById("gameAlert");
-  box.classList.add("show");
-  clearTimeout(alertTimer);
+  box.classList.add("show");clearTimeout(alertTimer);
   if(type==="pause")return;
-  let time=300;
-  if(type==="level"||type==="gameover") time=1200;
-  alertTimer=setTimeout(()=>box.classList.remove("show"),time);
+  alertTimer=setTimeout(()=>box.classList.remove("show"),(type==="level"||type==="gameover")?1200:300);
 }
 
-/* ══ WORLD & ITEMS ══ */
-const itemEmoji={
-  gold:"💰",copper:"🟤",silver:"⚪",diamond:"💎",
-  iron:"⛓️",obsidian:"🟣",med:"🧪",medkit:"🧰",
-  energy:"🥤",question:"❓",freeze:"🧊",poison_item:"☠️",bandage:"🩹"
-};
-const itemName={
-  gold:"Gold",copper:"Copper",silver:"Silver",
-  diamond:"Diamond",iron:"Iron",obsidian:"Obsidian"
-};
+/* ══ ITEMS ══ */
+const itemEmoji={gold:"💰",copper:"🟤",silver:"⚪",diamond:"💎",iron:"⛓️",obsidian:"🟣",med:"🧪",medkit:"🧰",energy:"🥤",question:"❓",freeze:"🧊",poison_item:"☠️",bandage:"🩹"};
+const itemName={gold:"Gold",copper:"Copper",silver:"Silver",diamond:"Diamond",iron:"Iron",obsidian:"Obsidian"};
 let itemTarget={},itemCollected={};
 
+/* ══ WORLD ══ */
 function floodFill(wx,wy){
-  let visited=new Set(),queue=[[wx,wy]];
-  visited.add(wy*W+wx);
-  while(queue.length){
-    let[cx,cy]=queue.shift();
-    for(let[dx,dy] of[[1,0],[-1,0],[0,1],[0,-1]]){
-      let nx=cx+dx,ny=cy+dy;
-      if(nx>=0&&ny>=0&&nx<W&&ny<H&&!visited.has(ny*W+nx)&&world[ny][nx]!=="tree"){
-        visited.add(ny*W+nx); queue.push([nx,ny]);
-      }
-    }
-  }
-  return visited;
+  let v=new Set(),q=[[wx,wy]];v.add(wy*W+wx);
+  while(q.length){let[cx,cy]=q.shift();for(let[dx,dy] of[[1,0],[-1,0],[0,1],[0,-1]]){let nx=cx+dx,ny=cy+dy;if(nx>=0&&ny>=0&&nx<W&&ny<H&&!v.has(ny*W+nx)&&world[ny][nx]!=="tree"){v.add(ny*W+nx);q.push([nx,ny]);}}}
+  return v;
 }
 
 function resetEffects(){
-  for(let name in activeEffects){
-    clearTimeout(activeEffects[name].timer);
-    if(EFFECT_DEFS[name]) EFFECT_DEFS[name].remove();
-  }
-  activeEffects={};
-  stepSize=1; magicShieldActive=false; magnetActive=false;
-  lavaImmune=false; ghostMode=false; luckyMode=false;
-  invincibleMode=false; weaknessActive=false;
-  clearInterval(poisonInterval); poisonInterval=null;
-  clearInterval(burningInterval); burningInterval=null;
-  clearInterval(corruptionInterval); corruptionInterval=null;
-  freezeMonsters=false; vision=5;
-  corruptionLevel=0; corruptionHitCount=0;
+  for(let n in activeEffects){clearTimeout(activeEffects[n].timer);if(EFFECT_DEFS[n])EFFECT_DEFS[n].remove();}
+  activeEffects={};stepSize=1;magicShieldActive=false;magnetActive=false;lavaImmune=false;
+  ghostMode=false;luckyMode=false;invincibleMode=false;weaknessActive=false;strengthActive=false;
+  clearInterval(poisonInterval);poisonInterval=null;
+  clearInterval(burningInterval);burningInterval=null;
+  clearInterval(bleedInterval);bleedInterval=null;
+  clearInterval(frostInterval);frostInterval=null;
+  clearInterval(corruptInterval);corruptInterval=null;
+  freezeMonsters=false;vision=5;shield=false;
+  bleedLevel=0;bleedHitCount=0;poisonLevel=0;poisonHitCount=0;
+  frostLevel=0;frostHitCount=0;burnLevel=0;speedLevel=0;speedStepsLeft=0;
+  corruptLevel=0;corruptHitCount=0;activeTraps=[];xrayActive=false;
+  fireProtectionActive=false;clearInterval(healUpInterval);healUpInterval=null;
+  healthBoost=0;strengthLevel=1;
+  clearInterval(halluInterval);halluInterval=null;
+  halluFakeItems=[];halluFakeMonsters=[];
 }
 
 function createWorld(){
   let attempts=0;
   while(true){
-    attempts++;
-    world=[];
-    for(let y=0;y<H;y++){
-      let row=[];
-      for(let x=0;x<W;x++) row.push(Math.random()<0.18?"tree":"empty");
-      world.push(row);
-    }
-    world[1][1]="empty"; world[H-2][W-2]="empty";
-    let reachable=floodFill(1,1);
-    let totalEmpty=0;
-    for(let y=0;y<H;y++) for(let x=0;x<W;x++) if(world[y][x]!=="tree") totalEmpty++;
+    attempts++;world=[];
+    for(let y=0;y<H;y++){let row=[];for(let x=0;x<W;x++)row.push(Math.random()<0.18?"tree":"empty");world.push(row);}
+    world[1][1]="empty";world[H-2][W-2]="empty";
+    let reachable=floodFill(1,1),totalEmpty=0;
+    for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(world[y][x]!=="tree")totalEmpty++;
     if(reachable.size>=totalEmpty*0.85){
-      for(let y=0;y<H;y++) for(let x=0;x<W;x++)
-        if(world[y][x]!=="tree"&&!reachable.has(y*W+x)) world[y][x]="tree";
+      for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(world[y][x]!=="tree"&&!reachable.has(y*W+x))world[y][x]="tree";
       break;
     }
-    if(attempts>10){
-      for(let y=0;y<H;y++) for(let x=0;x<W;x++) if(world[y][x]==="tree"&&Math.random()<0.4) world[y][x]="empty";
-      break;
-    }
+    if(attempts>10){for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(world[y][x]==="tree"&&Math.random()<0.4)world[y][x]="empty";break;}
   }
-  player={x:1,y:1};
-  resetEffects();
+  player={x:1,y:1};resetEffects();
 }
 
 function getReachableCells(){
-  let cells=[];
-  floodFill(player.x,player.y).forEach(id=>{
-    let x=id%W,y=Math.floor(id/W);
-    if(world[y][x]==="empty") cells.push({x,y});
-  });
-  return cells;
+  let cells=[];floodFill(player.x,player.y).forEach(id=>{let x=id%W,y=Math.floor(id/W);if(world[y][x]==="empty")cells.push({x,y});});return cells;
 }
-
-function randomEmptyCell(cells){
-  for(let i=0;i<200;i++){
-    let c=cells[Math.floor(Math.random()*cells.length)];
-    if(c&&world[c.y][c.x]==="empty") return c;
-  }
-  return null;
-}
+function randomEmptyCell(cells){for(let i=0;i<200;i++){let c=cells[Math.floor(Math.random()*cells.length)];if(c&&world[c.y][c.x]==="empty")return c;}return null;}
 
 function spawnMonsters(){
-  let cells=getReachableCells();
-  monsters=[];
-
+  let cells=getReachableCells();monsters=[];
   let types=["normal"];
-  if(stage>=3) types.push("fire");
-  if(stage>=6) types.push("ice");
-  
-  // الوحش الفاسد كل 5 مستويات
-  if(stage%5===0) types.push("corruption");
-
+  if(stage>=3)types.push("fire");
+  if(stage>=6)types.push("ice");
+  if(stage>=4)types.push("infected");
+  if(stage>=5&&stage%5===0)types.push("corruption");
   for(let type of types){
-    let best=null, bestDist=0;
+    let best=null;
     for(let i=0;i<50;i++){
-      let cell=cells[Math.floor(Math.random()*cells.length)];
-      if(!cell) continue;
+      let cell=cells[Math.floor(Math.random()*cells.length)];if(!cell)continue;
       let d=Math.abs(cell.x-player.x)+Math.abs(cell.y-player.y);
       let farFromOthers=monsters.every(m=>Math.abs(m.x-cell.x)+Math.abs(m.y-cell.y)>10);
-      if(d>20&&farFromOthers){bestDist=d;best=cell;}
+      if(d>20&&farFromOthers)best=cell;
     }
-    if(best) monsters.push({x:best.x,y:best.y,type,cd1:0,cd2:0,cd3:0,traps:0,xrayActive:false,xrayTimer:null});
+    if(best)monsters.push({x:best.x,y:best.y,type,cd1:0,cd2:0,cd3:0,traps:0});
   }
-  if(monsters.length===0) monsters=[{x:W-2,y:H-2,type:"normal",cd1:0,cd2:0,cd3:0,traps:0,xrayActive:false,xrayTimer:null}];
+  if(monsters.length===0)monsters=[{x:W-2,y:H-2,type:"normal",cd1:0,cd2:0,cd3:0,traps:0}];
 }
 
 function placeItems(){
-  itemTarget={}; itemCollected={};
+  itemTarget={};itemCollected={};
   let cells=getReachableCells();
-
   let all=["gold","copper","silver","diamond","iron","obsidian"];
   let active=all.sort(()=>Math.random()-0.5).slice(0,4);
-  if(!active.includes("gold")) active[0]="gold";
-
+  if(!active.includes("gold"))active[0]="gold";
   active.forEach(type=>{
-    let count=type==="gold"
-      ?Math.floor(Math.random()*16)+10
-      :Math.floor(Math.random()*9)+2;
-    itemTarget[type]=count; itemCollected[type]=0;
-    let placed=0;
-    while(placed<count){let c=randomEmptyCell(cells);if(!c)break;world[c.y][c.x]=type;placed++;}
+    let count=type==="gold"?Math.floor(Math.random()*16)+10:Math.floor(Math.random()*9)+2;
+    itemTarget[type]=count;itemCollected[type]=0;
+    let placed=0;while(placed<count){let c=randomEmptyCell(cells);if(!c)break;world[c.y][c.x]=type;placed++;}
   });
-
   for(let i=0;i<10;i++){let c=randomEmptyCell(cells);if(c)world[c.y][c.x]="med";}
-  for(let i=0;i<3;i++) {let c=randomEmptyCell(cells);if(c)world[c.y][c.x]="medkit";}
-  for(let i=0;i<8;i++) {let c=randomEmptyCell(cells);if(c)world[c.y][c.x]="energy";}
-  for(let i=0;i<5;i++) {let c=randomEmptyCell(cells);if(c)world[c.y][c.x]="question";}
-  for(let i=0;i<5;i++) {let c=randomEmptyCell(cells);if(c)world[c.y][c.x]="freeze";}
-  for(let i=0;i<6;i++) {let c=randomEmptyCell(cells);if(c)world[c.y][c.x]="poison_item";}
-  for(let i=0;i<8;i++) {let c=randomEmptyCell(cells);if(c)world[c.y][c.x]="bandage";}
-}
-
-/* ══ CORRUPTION MONSTER ABILITIES ══ */
-function corruptionSpikes(monster){
-  if(monster.cd1 > 0) return;
-  monster.cd1 = 40; // 20s cooldown
-  
-  // أنماط مختلفة للـ spikes
-  const patterns = [
-    // مستقيم أفقي
-    [[0,0],[1,0],[2,0],[3,0],[4,0],[-1,0],[-2,0],[-3,0],[-4,0]],
-    // قطري
-    [[0,0],[1,1],[2,2],[3,3],[4,4],[-1,-1],[-2,-2],[-3,-3],[-4,-4]],
-    // wavy (موجي)
-    [[0,0],[1,1],[2,0],[3,1],[4,0],[-1,-1],[-2,0],[-3,-1],[-4,0]],
-    // دائري
-    [[0,0],[1,0],[1,1],[0,1],[-1,1],[-1,0],[-1,-1],[0,-1],[1,-1],[2,0],[2,-1],[2,1]],
-    // مستقيم عمودي
-    [[0,0],[0,1],[0,2],[0,3],[0,4],[0,-1],[0,-2],[0,-3],[0,-4]]
-  ];
-  
-  let pattern = patterns[Math.floor(Math.random() * patterns.length)];
-  let positions = [];
-  
-  for(let [dx, dy] of pattern){
-    let sx = monster.x + dx, sy = monster.y + dy;
-    if(sx>=0 && sy>=0 && sx<W && sy<H && world[sy][sx] !== "tree"){
-      positions.push({x:sx, y:sy});
+  for(let i=0;i<3;i++){let c=randomEmptyCell(cells);if(c)world[c.y][c.x]="medkit";}
+  for(let i=0;i<8;i++){let c=randomEmptyCell(cells);if(c)world[c.y][c.x]="energy";}
+  for(let i=0;i<5;i++){let c=randomEmptyCell(cells);if(c)world[c.y][c.x]="question";}
+  for(let i=0;i<5;i++){let c=randomEmptyCell(cells);if(c)world[c.y][c.x]="freeze";}
+  for(let i=0;i<6;i++){let c=randomEmptyCell(cells);if(c)world[c.y][c.x]="poison_item";}
+  for(let i=0;i<8;i++){let c=randomEmptyCell(cells);if(c)world[c.y][c.x]="bandage";}
+  if(active.includes("obsidian")){
+    for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(world[y][x]==="obsidian"){
+      let nb=[[x+1,y],[x-1,y],[x,y+1],[x,y-1],[x+1,y+1],[x-1,y-1],[x+1,y-1],[x-1,y+1]];
+      for(let[nx,ny] of nb)if(nx>=0&&ny>=0&&nx<W&&ny<H&&world[ny][nx]==="empty"&&Math.random()<0.6)world[ny][nx]="lava";
     }
   }
-  
-  // تدريجياً تظهر الـ spikes (مثل قدرة John Doe)
-  let delay = 0;
-  positions.forEach((pos, i) => {
-    setTimeout(() => {
-      if(world[pos.y][pos.x] === "empty") {
-        world[pos.y][pos.x] = "spike";
-        drawWorld();
-      }
-    }, i * 150);
-  });
-  
-  // إزالة الـ spikes بعد 15s
-  setTimeout(() => {
-    positions.forEach(pos => {
-      if(world[pos.y][pos.x] === "spike") world[pos.y][pos.x] = "empty";
-    });
-    drawWorld();
-  }, 15000);
-  
-  ludki("🗡️ Corruption Spikes!", "Danger! 25 spikes!", "damage");
 }
 
-function corruptionTrap(monster){
-  if(monster.cd2 > 0 || monster.traps >= 3) return;
-  monster.cd2 = 60; // 30s cooldown
-  monster.traps++;
-  
-  let placed = false;
-  // وضع فخ في المنطقة حول الوحش
-  for(let radius=1; radius<=2 && !placed; radius++){
-    for(let dx=-radius; dx<=radius; dx++){
-      for(let dy=-radius; dy<=radius; dy++){
-        if(Math.abs(dx) !== radius && Math.abs(dy) !== radius) continue;
-        let tx = monster.x + dx, ty = monster.y + dy;
-        if(tx>=0 && ty>=0 && tx<W && ty<H && world[ty][tx] === "empty"){
-          world[ty][tx] = "trap";
-          placed = true;
-          break;
-        }
-      }
-      if(placed) break;
-    }
-  }
-  
-  drawWorld();
-  ludki("🟫 Corruption Trap!", "A trap has been set!", "damage");
-}
-
-function corruptionXray(monster){
-  if(monster.cd3 > 0) return;
-  monster.cd3 = 60; // 30s cooldown
-  
-  monster.xrayActive = true;
-  ludki("🚨 Dr.G Alert", "Corrupted Monster seeing you for 10s!", "damage");
-  playSound(sounds.corruption_sound);
-  
-  monster.xrayTimer = setTimeout(() => {
-    monster.xrayActive = false;
-    ludki("✅ X-ray Ended", "You are safe now!", "normal");
-  }, 10000);
-}
-
-function isMonsterCanSee(monster, playerX, playerY){
-  // إذا كان الـ X-Ray فعال، يرى اللاعب مهما كان
-  if(monster.xrayActive) return true;
-  
-  // وإلا يرى فقط إذا كان قريب بما يكفي
-  let dist = Math.abs(monster.x - playerX) + Math.abs(monster.y - playerY);
-  return dist <= 14;
+/* ══ CAMERA ══ */
+function getCamera(){
+  let cx=Math.max(0,Math.min(W-VIEW_W,Math.floor(player.x-VIEW_W/2)));
+  let cy=Math.max(0,Math.min(H-VIEW_H,Math.floor(player.y-VIEW_H/2)));
+  return{cx,cy};
 }
 
 /* ══ HUD ══ */
 function drawHud(){
-  let now=Date.now(), lines=[];
+  let now=Date.now(),lines=[];
   for(let name in activeEffects){
-    let def=EFFECT_DEFS[name];
-    if(!def)continue;
-    let remaining=Math.max(0,Math.ceil((activeEffects[name].endTime-now)/1000));
+    let def=EFFECT_DEFS[name];if(!def)continue;
+    let rem=Math.max(0,Math.ceil((activeEffects[name].endTime-now)/1000));
     let color=def.good?"#0f0":"#f44";
-    lines.push(`<div style="color:${color};margin:2px 0">${def.emoji} ${def.label} — ${remaining}s</div>`);
+    lines.push(`<div style="color:${color};margin:1px 0;font-size:10px">${def.emoji} ${def.label} — ${rem}s</div>`);
   }
-  let lavaIndicator = onLava ? `<div style="color:#f60;font-size:10px;margin-bottom:2px">🌋 أنت على الـ Lava!</div>` : "";
+  let lavaInd=onLava?`<div style="color:#f60;font-size:9px">🌋 على الـ Lava!</div>`:"";
   effectsHudEl.innerHTML=lines.length
-    ?lavaIndicator+`<div style="color:#aaa;font-size:10px;margin-bottom:2px">⚗️ Effects:</div>`+lines.join("")
-    :lavaIndicator+`<div style="color:#444;font-size:10px">⚗️ لا يوجد تأثير</div>`;
+    ?lavaInd+`<div style="color:#aaa;font-size:9px">⚗️ Effects:</div>`+lines.join("")
+    :lavaInd+`<div style="color:#333;font-size:9px">⚗️ No effects</div>`;
+  let itemHtml=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:10px;">`;
+  for(let k in itemTarget){let count=itemCollected[k]||0,target=itemTarget[k];itemHtml+=`<div style="color:${count>=target?"lime":"#cfffcc"}">${itemEmoji[k]} ${count}/${target}</div>`;}
+  itemHtml+=`</div>`;
+  itemsHud.innerHTML=itemHtml;
 }
 setInterval(drawHud,500);
 
-/* ══ DRAW WORLD ══ */
+/* ══ DRAW ══ */
 function drawWorld(){
   game.innerHTML="";
-  game.style.gridTemplateColumns=`repeat(${VIEW_W},14px)`;
-  const {cx, cy} = getCamera();
-
+  game.style.gridTemplateColumns=`repeat(${VIEW_W},${CELL_SIZE}px)`;
+  const{cx,cy}=getCamera();
   for(let row=0;row<VIEW_H;row++){
     for(let col=0;col<VIEW_W;col++){
       let x=cx+col,y=cy+row;
-      let div=document.createElement("div");
-      div.classList.add("cell");
+      let div=document.createElement("div");div.style.width=CELL_SIZE+"px";div.style.height=CELL_SIZE+"px";div.style.fontSize=Math.max(7,CELL_SIZE-4)+"px";div.classList.add("cell");
       let visible=Math.sqrt((player.x-x)**2+(player.y-y)**2)<=vision;
-
-      if(visible && x>=0 && x<W && y>=0 && y<H){
+      if(visible&&x>=0&&x<W&&y>=0&&y<H){
         let cell=world[y][x];
-        if(cell==="lava")        {div.style.background="rgb(180,40,0)";div.style.boxShadow="inset 0 0 4px rgba(255,100,0,0.8)";}
-        else if(cell==="spike")  {div.style.background="rgb(30,0,50)";div.textContent="🗡️";}
-        else if(cell==="trap")   {div.style.background="rgb(20,20,20)";div.textContent="🟫";}
-        else if(cell==="freeze") {div.style.background="rgb(0,80,160)";}
+        if(cell==="lava"){div.style.background="rgb(180,40,0)";div.style.boxShadow="inset 0 0 4px rgba(255,100,0,0.8)";}
+        else if(cell==="spike"){div.style.background="rgb(15,0,25)";}
+        else if(cell==="trap"){div.style.background="rgb(5,0,5)";}
+        else if(cell==="freeze"){div.style.background="rgb(0,80,160)";}
         else if(cell==="poison_item"){div.style.background="rgb(40,80,20)";}
-        else                     {div.style.background="rgb(36,129,36)";}
+        else if(cell==="firezone"){div.style.background="rgb(200,60,0)";}
+        else if(cell==="icezone"){div.style.background="rgb(0,100,200)";}
+        else if(cell==="scorch"){div.style.background="rgb(80,30,0)";}
+        else if(cell==="icescorch"){div.style.background="rgb(0,60,120)";};
+        if(cell==="voidzone"){div.style.background="rgb(50,0,70)";div.style.boxShadow="inset 0 0 4px rgba(160,0,240,0.8)";}
+        else{div.style.background="rgb(36,129,36)";}
 
-        if(player.x===x&&player.y===y)     div.textContent="🧍";
-        else if(cell==="tree")             div.textContent="🌲";
-        else if(cell==="lava")             div.textContent="🔥";
-        else if(cell==="spike")            div.textContent="🗡️";
-        else if(cell==="trap")             div.textContent="🟫";
-        else if(cell==="med")              div.textContent="🧪";
-        else if(cell==="medkit")           div.textContent="🧰";
-        else if(cell==="energy")           div.textContent="🥤";
-        else if(cell==="question")         div.textContent="❓";
-        else if(cell==="freeze")           div.textContent="🧊";
-        else if(cell==="poison_item")      div.textContent="☠️";
-        else if(cell==="bandage")          div.textContent="🩹";
-        else if(itemEmoji[cell])           div.textContent=itemEmoji[cell];
-        
+        if(player.x===x&&player.y===y)div.textContent="🧍";
+        else if(cell==="tree")div.textContent="🌲";
+        else if(cell==="lava")div.textContent="🔥";
+        else if(cell==="spike")div.textContent="🗡️";
+        else if(cell==="trap"){div.style.background="rgb(0,0,0)";div.textContent="⬛";}
+        else if(cell==="med")div.textContent="🧪";
+        else if(cell==="medkit")div.textContent="🧰";
+        else if(cell==="energy")div.textContent="🥤";
+        else if(cell==="question")div.textContent="❓";
+        else if(cell==="freeze")div.textContent="🧊";
+        else if(cell==="poison_item")div.textContent="☠️";
+        else if(cell==="bandage")div.textContent="🩹";
+        else if(cell==="firezone")div.textContent="🔸";
+        else if(cell==="icezone")div.textContent="🔹";
+        else if(cell==="scorch")div.textContent="💨";
+        else if(cell==="icescorch")div.textContent="💨";
+        else if(cell==="fireball")div.textContent="🔥";
+        else if(cell==="iceball")div.textContent="❄️";
+        else if(cell==="voidzone")div.style.background=rgb(178, 0, 214);
+        else if(cell==="voidstar"){
+          if(voidStar&&voidStar.voidIMage){
+            div.style.backgroundImage=URL("./images/e5b05c33e8b8ba078bb63ab4ca710a5f.gif");
+            div.style.backgroundSize="contain";div.style.backgroundRepeat="no-repeat";
+            div.style.backgroundPosition="center";
+          }else div.textContent="⭐";
+        }
+        else if(itemEmoji[cell])div.textContent=itemEmoji[cell];
+
+        /* رسم العناصر الوهمية */
+        halluFakeItems.forEach(fi=>{if(fi.x===x&&fi.y===y)div.textContent=fi.emoji||"💰";});
+        /* رسم الوحوش الوهمية */
+        halluFakeMonsters.forEach(fm=>{if(fm.x===x&&fm.y===y){div.textContent="👾";div.style.filter="hue-rotate(90deg) brightness(1.5)";}});
         monsters.forEach(m=>{
           if(m.x===x&&m.y===y){
-            div.style.background="transparent";
-            if(m.type==="corruption" && monsterImgs.corruption){
-              div.style.backgroundImage=`url('${monsterImgs.corruption}')`;
-              div.style.backgroundSize="contain";
-              div.style.backgroundRepeat="no-repeat";
-              div.style.backgroundPosition="center";
-              div.textContent="";
-            } else if(m.type==="fire" && monsterImgs.fire){
-              div.style.backgroundImage=`url('${monsterImgs.fire}')`;
-              div.style.backgroundSize="contain";
-              div.style.backgroundRepeat="no-repeat";
-              div.style.backgroundPosition="center";
-              div.textContent="";
-            } else if(m.type==="ice" && monsterImgs.ice){
-              div.style.backgroundImage=`url('${monsterImgs.ice}')`;
-              div.style.backgroundSize="contain";
-              div.style.backgroundRepeat="no-repeat";
-              div.style.backgroundPosition="center";
-              div.textContent="";
-            } else {
-              div.textContent=m.type==="corruption"?"🟣":m.type==="fire"?"🔥":"👹";
+            if(monsterImgs[m.type]){
+              div.style.backgroundImage=`url('${monsterImgs[m.type]}')`;
+              div.style.backgroundSize="contain";div.style.backgroundRepeat="no-repeat";
+              div.style.backgroundPosition="center";div.textContent="";
+            }else{
+              div.textContent=m.type==="fire"?"🔴":m.type==="ice"?"🔵":m.type==="corruption"?"🟣":m.type==="infected"?"👾":"👹";
             }
           }
         });
-      }else{
-        div.style.background="rgb(30,30,30)";
-      }
+      }else{div.style.background="rgb(20,20,20)";}
       game.appendChild(div);
     }
   }
-
   levelEl.textContent=stage;
   hpBar.style.width=hp+"%";
   hpBar.style.background=hp>60?"lime":hp>30?"orange":"red";
-
-  let hud="";
-  for(let k in itemTarget) hud+=`${itemEmoji[k]} ${itemName[k]}: ${itemCollected[k]||0}/${itemTarget[k]}<br>`;
-  itemsHud.innerHTML=hud;
+  /* Health Boost bar */
+  const boostWrap=document.getElementById("boostBarWrap");
+  const boostBarEl=document.getElementById("boostBar");
+  if(boostWrap&&boostBarEl){if(healthBoost>0){boostWrap.style.display="block";boostBarEl.style.width=healthBoost+"%";}else boostWrap.style.display="none";}
   drawHud();
 }
 
-/* ══ MOVEMENT ══ */
+/* ══ EFFECT SYSTEMS ══ */
+function startBleeding(){
+  bleedHitCount++;
+  let nl=bleedLevel;
+  if(hp<30||bleedHitCount>=3)nl=3;else if(hp<60||bleedHitCount>=2)nl=2;else nl=1;
+  bleedLevel=nl;clearInterval(bleedInterval);
+  if(activeEffects["bleeding"])clearTimeout(activeEffects["bleeding"].timer);
+  let dps=getBleedDPS(bleedLevel),label=`Bleeding ${getRoman(bleedLevel)}`;
+  bleedInterval=setInterval(()=>{
+    if(paused)return;if(!activeEffects["bleeding"]){clearInterval(bleedInterval);bleedInterval=null;return;}
+    hp-=dps;ludki(`🩸 ${label}`,`−${dps} HP/s`,"damage");playSound(sounds.bleed);
+    if(hp<=0)triggerDeath(`Bled out 🩸`);drawWorld();
+  },1000);
+  EFFECT_DEFS["bleeding"].label=label;
+  let dur=getLevelDur(bleedLevel);
+  activeEffects["bleeding"]={endTime:Date.now()+dur,timer:setTimeout(()=>{clearInterval(bleedInterval);bleedInterval=null;bleedLevel=0;bleedHitCount=0;delete activeEffects["bleeding"];drawHud();},dur)};
+  drawHud();
+}
+
+function startFrost(level){
+  frostHitCount++;frostLevel=Math.min(3,level||frostHitCount);
+  let fdps=getFrostDPS(frostLevel),fdur=getLevelDur(frostLevel);
+  EFFECT_DEFS["frost"].label=`Frost ${getRoman(frostLevel)}`;
+  clearInterval(frostInterval);if(activeEffects["frost"])clearTimeout(activeEffects["frost"].timer);
+  frostInterval=setInterval(()=>{
+    if(paused)return;if(!activeEffects["frost"]){clearInterval(frostInterval);frostInterval=null;return;}
+    hp-=fdps;ludki(`❄️ Frost ${getRoman(frostLevel)}`,`−${fdps} HP/s`,"damage");
+    if(hp<=0)triggerDeath(`Frozen ❄️`);drawWorld();
+  },1000);
+  activeEffects["frost"]={endTime:Date.now()+fdur,timer:setTimeout(()=>{EFFECT_DEFS["frost"].remove();delete activeEffects["frost"];drawHud();},fdur)};
+  ludki(`❄️ Frost ${getRoman(frostLevel)}`,"Watch out!","damage");drawHud();
+}
+
+function startCorruption(forcedLevel){
+  corruptHitCount++;
+  let nl=corruptLevel;
+  if(forcedLevel)nl=forcedLevel;
+  else if(hp<30||corruptHitCount>=3)nl=3;else if(hp<60||corruptHitCount>=2)nl=2;else nl=1;
+  corruptLevel=nl;clearInterval(corruptInterval);
+  if(activeEffects["corruption"])clearTimeout(activeEffects["corruption"].timer);
+  let dps=getCorruptDPS(corruptLevel),label=`Corruption ${getRoman(corruptLevel)}`;
+  EFFECT_DEFS["corruption"].label=label;
+  corruptInterval=setInterval(()=>{
+    if(paused)return;if(!activeEffects["corruption"]){clearInterval(corruptInterval);corruptInterval=null;return;}
+    hp-=dps;ludki(`🟣 ${label}`,`−${dps} HP/s`,"damage");
+    if(hp<=0)triggerDeath(`Corrupted 🟣`);drawWorld();
+  },1000);
+  let dur=getLevelDur(corruptLevel);
+  activeEffects["corruption"]={endTime:Date.now()+dur,timer:setTimeout(()=>{EFFECT_DEFS["corruption"].remove();delete activeEffects["corruption"];drawHud();},dur)};
+  ludki(`🟣 ${label}`,"Watch out!","damage");drawHud();
+}
+
+const BURN_DURATION=7000;
+function startBurning(){
+  if(fireProtectionActive){ludki("🔥🛡️ Fire Protection","Immune to burning!","collect");return;}
+  burnLevel=Math.min(3,burnLevel+1);
+  let bdps=getBurnDPS(burnLevel),bdur=onLava?99999999:getLevelDur(burnLevel);
+  EFFECT_DEFS["burning"].label=`Burning ${getRoman(burnLevel)}`;
+  if(activeEffects["burning"])clearTimeout(activeEffects["burning"].timer);
+  if(!burningInterval){
+    burningInterval=setInterval(()=>{
+      if(paused)return;if(!activeEffects["burning"]){clearInterval(burningInterval);burningInterval=null;return;}
+      hp-=bdps;ludki(`🔥 Burning ${getRoman(burnLevel)}`,`−${bdps} HP/2s`,"damage");playSound(sounds.burn);
+      if(hp<=0)triggerDeath(`Burned 🔥`);drawWorld();
+    },2000);
+  }
+  activeEffects["burning"]={
+    endTime:onLava?Date.now()+99999999:Date.now()+getLevelDur(burnLevel),
+    timer:setTimeout(()=>{clearInterval(burningInterval);burningInterval=null;burnLevel=0;delete activeEffects["burning"];drawHud();},bdur)
+  };
+  drawHud();
+}
+
+function updateBurningTimer(){
+  let cell=world[player.y]?.[player.x];let wasOnLava=onLava;onLava=(cell==="lava");
+  if(activeEffects["burning"]){
+    if(onLava){
+      clearTimeout(activeEffects["burning"].timer);
+      activeEffects["burning"].endTime=Date.now()+99999999;
+      activeEffects["burning"].timer=setTimeout(()=>{clearInterval(burningInterval);burningInterval=null;delete activeEffects["burning"];drawHud();},99999999);
+      drawHud();
+    }else if(wasOnLava&&!onLava){
+      clearTimeout(activeEffects["burning"].timer);
+      activeEffects["burning"].endTime=Date.now()+BURN_DURATION;
+      activeEffects["burning"].timer=setTimeout(()=>{clearInterval(burningInterval);burningInterval=null;delete activeEffects["burning"];drawHud();},BURN_DURATION);
+      drawHud();
+    }
+  }
+}
+
+
+
+/* ══ HALLUCINATION SYSTEM ══ */
+const FAKE_ITEM_EMOJIS=["💰","🧪","🥤","❓","💎","⛓️"];
+
+function startHallucination(level){
+  /* أوقف الهلوسه القديمة */
+  for(let l of[1,2,3]){
+    let n="hallucination"+["I","II","III"][l-1];
+    if(activeEffects[n]){clearTimeout(activeEffects[n].timer);EFFECT_DEFS[n].remove();delete activeEffects[n];}
+  }
+  clearInterval(halluInterval);halluInterval=null;
+  halluFakeItems=[];halluFakeMonsters=[];
+  
+  let effName=level===1?"hallucinationI":level===2?"hallucinationII":"hallucinationIII";
+  let dur=level===1?12000:level===2?15000:18000;
+  EFFECT_DEFS[effName].apply();
+  
+  if(level===1){
+    /* Hallucination I: screen wavy only - no interval needed */
+  }
+  if(level>=2){
+    /* Hallucination II: fake items spawn */
+    halluInterval=setInterval(()=>{
+      if(paused)return;
+      /* إضافة عنصر وهمي */
+      if(halluFakeItems.length<6){
+        let angle=Math.random()*Math.PI*2;
+        let r=3+Math.floor(Math.random()*8);
+        let fx=Math.round(player.x+Math.cos(angle)*r);
+        let fy=Math.round(player.y+Math.sin(angle)*r);
+        if(fx>=0&&fy>=0&&fx<W&&fy<H&&world[fy][fx]==="empty"){
+          halluFakeItems.push({x:fx,y:fy,emoji:FAKE_ITEM_EMOJIS[Math.floor(Math.random()*FAKE_ITEM_EMOJIS.length)]});
+        }
+      }
+      /* حركة الوحوش الوهمية */
+      if(level===3){
+        halluFakeMonsters.forEach(fm=>{
+          if(paused)return;
+          let dx=player.x>fm.x?1:player.x<fm.x?-1:0;
+          let dy=player.y>fm.y?1:player.y<fm.y?-1:0;
+          let nx=fm.x+dx,ny=fm.y+dy;
+          if(nx>=0&&ny>=0&&nx<W&&ny<H&&world[ny][nx]!=="tree"&&world[ny][nx]!=="spike"){fm.x=nx;fm.y=ny;}
+          if(fm.x===player.x&&fm.y===player.y&&!hitCooldown&&!invincibleMode){
+            hp-=20;ludki("👾 Hallucination","Fake monster hit! −20 HP","damage");
+            hitCooldown=true;setTimeout(()=>hitCooldown=false,1000);
+            if(hp<=0)triggerDeath("Killed by Hallucination 👾");
+          }
+        });
+      }
+      drawWorld();
+    },level===3?300:600);
+  }
+  if(level===3){
+    /* Hallucination III: spawn fake monsters */
+    let count=2+Math.floor(Math.random()*4);
+    for(let i=0;i<count;i++){
+      let angle=(i/count)*Math.PI*2;
+      let r=8+Math.floor(Math.random()*6);
+      let fx=Math.round(player.x+Math.cos(angle)*r);
+      let fy=Math.round(player.y+Math.sin(angle)*r);
+      if(fx>=0&&fy>=0&&fx<W&&fy<H) halluFakeMonsters.push({x:fx,y:fy});
+    }
+  }
+  
+  activeEffects[effName]={
+    endTime:Date.now()+dur,
+    timer:setTimeout(()=>{
+      EFFECT_DEFS[effName].remove();delete activeEffects[effName];
+      halluFakeItems=[];halluFakeMonsters=[];
+      clearInterval(halluInterval);halluInterval=null;
+      drawHud();
+    },dur)
+  };
+  ludki(`🌀 Hallucination ${["I","II","III"][level-1]}`,"Watch out!","damage");
+  drawHud();
+}
+
+function showVoidZoneAlerts(){
+  let messages=["YOU ARE AN IDIOT","YOU ARE AN IDIOT","YOU ARE AN IDIOT"];
+  messages.forEach((msg,i)=>{
+    setTimeout(()=>{
+      let el=document.createElement("div");
+      el.className="hallucination-alert";
+      el.style.top=(15+Math.random()*55)+"%";
+      el.style.left=(5+Math.random()*55)+"%";
+      let img=monsterImgs.infected?`<img src="${monsterImgs.infected}" style="width:28px;height:28px;border-radius:4px;margin-bottom:4px;display:block;margin-left:auto;margin-right:auto"><br>`:"👾<br>";
+      el.innerHTML=img+msg;
+      document.body.appendChild(el);
+      setTimeout(()=>el.remove(),3000);
+    },i*250);
+  });
+}
+/* ══ HEAL UP SYSTEM ══ */
+function startRegenI(){
+  /* يشيل burning I/II و bleeding I */
+  for(let eff of["burning","bleeding"])if(activeEffects[eff]){
+    let lv=eff==="burning"?burnLevel:bleedLevel;
+    if(lv<=2){ /* فقط مستوى I أو II */
+      clearTimeout(activeEffects[eff].timer);EFFECT_DEFS[eff].remove();delete activeEffects[eff];
+    }
+  }
+  clearInterval(healUpInterval);
+  if(activeEffects["regenI"])clearTimeout(activeEffects["regenI"].timer);
+  if(activeEffects["regenII"])clearTimeout(activeEffects["regenII"].timer);
+  let totalHealed=0,maxHeal=15;
+  EFFECT_DEFS["regenI"].apply();
+  healUpInterval=setInterval(()=>{
+    if(paused)return;
+    if(hp>=100||totalHealed>=maxHeal){clearInterval(healUpInterval);healUpInterval=null;EFFECT_DEFS["regenI"].remove();delete activeEffects["regenI"];drawHud();return;}
+    hp=Math.min(100,hp+1);totalHealed++;drawWorld();
+  },400);
+  activeEffects["regenI"]={endTime:Date.now()+6000,timer:setTimeout(()=>{clearInterval(healUpInterval);healUpInterval=null;EFFECT_DEFS["regenI"].remove();delete activeEffects["regenI"];drawHud();},6000)};
+  ludki("💚 Regen I","+15 HP | Cleansing...","heal");drawHud();
+}
+
+function startRegenII(){
+  /* يشيل weakness و poison */
+  for(let eff of["weakness","poison"])if(activeEffects[eff]){clearTimeout(activeEffects[eff].timer);EFFECT_DEFS[eff].remove();delete activeEffects[eff];}
+  clearInterval(poisonInterval);poisonInterval=null;poisonLevel=0;poisonHitCount=0;
+  clearInterval(healUpInterval);
+  if(activeEffects["regenI"])clearTimeout(activeEffects["regenI"].timer);
+  if(activeEffects["regenII"])clearTimeout(activeEffects["regenII"].timer);
+  let totalHealed=0,maxHeal=25;
+  EFFECT_DEFS["regenII"].apply();
+  healUpInterval=setInterval(()=>{
+    if(paused)return;
+    if(hp>=100||totalHealed>=maxHeal){clearInterval(healUpInterval);healUpInterval=null;EFFECT_DEFS["regenII"].remove();delete activeEffects["regenII"];drawHud();return;}
+    hp=Math.min(100,hp+1);totalHealed++;drawWorld();
+  },300);
+  activeEffects["regenII"]={endTime:Date.now()+8000,timer:setTimeout(()=>{clearInterval(healUpInterval);healUpInterval=null;EFFECT_DEFS["regenII"].remove();delete activeEffects["regenII"];drawHud();},8000)};
+  ludki("💚💚 Regen II","+25 HP | Cleansing...","heal");drawHud();
+}
+
+/* ══ DEATH ══ */
+function triggerDeath(reason){
+  clearInterval(bleedInterval);bleedInterval=null;bleedLevel=0;bleedHitCount=0;
+  clearInterval(poisonInterval);poisonInterval=null;poisonLevel=0;poisonHitCount=0;
+  clearInterval(frostInterval);frostInterval=null;frostLevel=0;frostHitCount=0;
+  clearInterval(corruptInterval);corruptInterval=null;corruptLevel=0;corruptHitCount=0;
+  burnLevel=0;hp=100;hitCooldown=false;levelCleared=false;paused=true;
+  clearInterval(halluInterval);halluInterval=null;halluFakeItems=[];halluFakeMonsters=[];
+  stopAllMusic();currentChase=null;
+  playSound(sounds.gameover);
+  document.getElementById("gameOverReason").textContent=reason;
+  document.getElementById("gameOverScreen").classList.add("show");
+}
+document.getElementById("retryBtn").addEventListener("click",()=>{
+  document.getElementById("gameOverScreen").classList.remove("show");
+  paused=false;playSound(sounds.restart);
+  createWorld();placeItems();spawnMonsters();drawWorld();
+  if(!window._gameLoop)window._gameLoop=setInterval(gameLoop,500);
+  resumeBg();
+});
+
+/* ══ MONSTER ABILITIES ══ */
+function flameSurge(monster){
+  if(monster.cd1>0)return;monster.cd1=30;
+  let positions=[],dirs=[[-4,0],[4,0],[0,-4],[0,4],[-3,-2],[3,2],[-2,3],[2,-3]];
+  for(let[dx,dy] of dirs){let fx=monster.x+dx,fy=monster.y+dy;if(fx>=0&&fy>=0&&fx<W&&fy<H&&world[fy][fx]!=="tree"&&world[fy][fx]!=="lava"){world[fy][fx]="firezone";positions.push({x:fx,y:fy});}}
+  setTimeout(()=>{for(let p of positions)if(world[p.y][p.x]==="firezone")world[p.y][p.x]="empty";},20000);
+}
+function fireFireball(monster){
+  if(monster.cd2>0)return;monster.cd2=20;
+  let dirs=[[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[1,1],[-1,1],[1,-1]];
+  let dir=dirs[Math.floor(Math.random()*dirs.length)],bx=monster.x,by=monster.y;
+  let interval=setInterval(()=>{
+    if(paused)return;bx+=dir[0];by+=dir[1];
+    if(bx<0||by<0||bx>=W||by>=H){clearInterval(interval);return;}
+    if(world[by][bx]==="tree"){clearInterval(interval);world[by][bx]="scorch";setTimeout(()=>{if(world[by][bx]==="scorch")world[by][bx]="empty";},10000);drawWorld();return;}
+    if(bx===player.x&&by===player.y){clearInterval(interval);burnLevel=2;startBurning();ludki("🔥 FIREBALL","Direct Hit! Burning III","damage");playSound(sounds.burn);if(hp<=0)triggerDeath("Killed by Fireball 🔥");return;}
+    if(world[by][bx]==="empty")world[by][bx]="fireball";
+    setTimeout(()=>{if(world[by][bx]==="fireball")world[by][bx]="empty";drawWorld();},200);drawWorld();
+  },150);
+}
+function iceStorm(monster){
+  if(monster.cd1>0)return;monster.cd1=30;
+  let positions=[],dirs=[[-4,0],[4,0],[0,-4],[0,4],[-3,-2],[3,2],[-2,3],[2,-3]];
+  for(let[dx,dy] of dirs){let fx=monster.x+dx,fy=monster.y+dy;if(fx>=0&&fy>=0&&fx<W&&fy<H&&world[fy][fx]!=="tree"&&world[fy][fx]!=="lava"){world[fy][fx]="icezone";positions.push({x:fx,y:fy});}}
+  setTimeout(()=>{for(let p of positions)if(world[p.y][p.x]==="icezone")world[p.y][p.x]="empty";},20000);
+}
+function fireIceBolt(monster){
+  if(monster.cd2>0)return;monster.cd2=20;
+  let dirs=[[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[1,1],[-1,1],[1,-1]];
+  let dir=dirs[Math.floor(Math.random()*dirs.length)],bx=monster.x,by=monster.y;
+  let interval=setInterval(()=>{
+    if(paused)return;bx+=dir[0];by+=dir[1];
+    if(bx<0||by<0||bx>=W||by>=H){clearInterval(interval);return;}
+    if(world[by][bx]==="tree"){clearInterval(interval);world[by][bx]="icescorch";setTimeout(()=>{if(world[by][bx]==="icescorch")world[by][bx]="empty";},10000);drawWorld();return;}
+    if(bx===player.x&&by===player.y){clearInterval(interval);startFrost(3);ludki("❄️ ICE BOLT","Direct Hit! Frost III","damage");if(hp<=0)triggerDeath("Killed by Ice Bolt ❄️");return;}
+    if(world[by][bx]==="empty")world[by][bx]="iceball";
+    setTimeout(()=>{if(world[by][bx]==="iceball")world[by][bx]="empty";drawWorld();},200);drawWorld();
+  },150);
+}
+
+
+/* ══ INFECTED MONSTER ABILITIES ══ */
+function infectedRush(monster){
+  if(monster.cd1>0)return;monster.cd1=15;
+  monster.rushing=true;
+  monster.rushTimer=20; /* 20 ticks = 10s */
+}
+
+function infectedVoidStar(monster){
+  if(monster.cd2>0)return;monster.cd2=20;
+  /* اتجاه نحو اللاعب */
+  let dx=player.x>monster.x?1:player.x<monster.x?-1:0;
+  let dy=player.y>monster.y?1:player.y<monster.y?-1:0;
+  if(dx===0&&dy===0)dy=1;
+  let bx=monster.x,by=monster.y;
+  let interval=setInterval(()=>{
+    if(paused)return;
+    bx+=dx;by+=dy;
+    if(bx<0||by<0||bx>=W||by>=H){clearInterval(interval);return;}
+    /* خبطت لاعب */
+    if(bx===player.x&&by===player.y){
+      clearInterval(interval);
+      hp-=15;ludki("⭐ Void Star","Direct Hit! −15 HP","damage");
+      playSound(sounds.voidstar_sfx||sounds.effect);
+      if(hp<=0)triggerDeath("Killed by Void Star ⭐");
+      return;
+    }
+    /* خبطت شجرة → voidzone */
+    if(world[by][bx]==="tree"){
+      clearInterval(interval);
+      world[by][bx]="empty";
+      /* إنشاء voidzone 2x2 حول مكان الاصطدام */
+      for(let vy=by-2;vy<=by+2;vy++) for(let vx=bx-2;vx<=bx+2;vx++){
+        if(vx>=0&&vy>=0&&vx<W&&vy<H&&world[vy][vx]==="empty"){
+          world[vy][vx]="voidzone";
+        }
+      }
+      playSound(sounds.voidstar_sfx||sounds.effect);
+      drawWorld();
+      /* تختفي بعد 15s */
+      setTimeout(()=>{
+        for(let vy=by-2;vy<=by+2;vy++) for(let vx=bx-2;vx<=bx+2;vx++){
+          if(vx>=0&&vy>=0&&vx<W&&vy<H&&world[vy][vx]==="voidzone") world[vy][vx]="empty";
+        }
+        drawWorld();
+      },15000);
+      return;
+    }
+    /* النجمة تتحرك */
+    if(world[by][bx]==="empty") world[by][bx]="voidstar";
+    setTimeout(()=>{if(world[by][bx]==="voidstar") world[by][bx]="empty";drawWorld();},200);
+    drawWorld();
+  },120);
+}
+
+function infectedTeleport(monster){
+  if(monster.cd3>0)return;monster.cd3=30;
+  /* انتقل لموقع قريب من اللاعب (10 وحدات) */
+  let angle=Math.random()*Math.PI*2;
+  let r=6+Math.floor(Math.random()*4);
+  let tx=Math.round(player.x+Math.cos(angle)*r);
+  let ty=Math.round(player.y+Math.sin(angle)*r);
+  if(tx>=0&&ty>=0&&tx<W&&ty<H&&world[ty][tx]!=="tree"&&world[ty][tx]!=="spike"){
+    monster.x=tx;monster.y=ty;
+    ludki("👾 Infected","Teleported near you!","damage");
+  }
+}
+
+/* ══ CORRUPTION ABILITIES ══ */
+function corruptSpikes(monster){
+  if(monster.cd1>0)return;monster.cd1=40;
+  let pattern=Math.floor(Math.random()*4),positions=[],spikesPlaced=0;
+  if(pattern===0){/* خط مستقيم */
+    let dirs=[{dx:1,dy:0},{dx:-1,dy:0},{dx:0,dy:1},{dx:0,dy:-1},{dx:1,dy:1},{dx:-1,dy:-1},{dx:1,dy:-1},{dx:-1,dy:1}];
+    let dir=dirs[Math.floor(Math.random()*dirs.length)];
+    for(let i=1;i<=25&&spikesPlaced<25;i++){
+      let sx=monster.x+dir.dx*i,sy=monster.y+dir.dy*i;
+      if(sx>=0&&sy>=0&&sx<W&&sy<H&&world[sy][sx]==="empty"){positions.push({x:sx,y:sy});spikesPlaced++;}
+    }
+  }else if(pattern===1){/* wavy */
+    let dx=player.x>monster.x?1:-1;
+    for(let i=1;i<=25&&spikesPlaced<25;i++){
+      let sx=monster.x+dx*i,sy=monster.y+Math.round(Math.sin(i*0.6)*3);
+      if(sx>=0&&sy>=0&&sx<W&&sy<H&&world[sy][sx]==="empty"){positions.push({x:sx,y:sy});spikesPlaced++;}
+    }
+  }else if(pattern===2){/* دائري */
+    for(let a=0;a<360&&spikesPlaced<25;a+=15){
+      let r=4+Math.floor(spikesPlaced/8);
+      let sx=Math.round(monster.x+r*Math.cos(a*Math.PI/180));
+      let sy=Math.round(monster.y+r*Math.sin(a*Math.PI/180));
+      if(sx>=0&&sy>=0&&sx<W&&sy<H&&world[sy][sx]==="empty"&&!positions.find(p=>p.x===sx&&p.y===sy)){positions.push({x:sx,y:sy});spikesPlaced++;}
+    }
+  }else{/* عشوائي */
+    let tried=0;
+    while(spikesPlaced<25&&tried<200){tried++;let sx=monster.x+Math.round((Math.random()-0.5)*14),sy=monster.y+Math.round((Math.random()-0.5)*14);
+      if(sx>=0&&sy>=0&&sx<W&&sy<H&&world[sy][sx]==="empty"&&!positions.find(p=>p.x===sx&&p.y===sy)){positions.push({x:sx,y:sy});spikesPlaced++;}}
+  }
+  /* ضع تدريجياً */
+  positions.forEach((p,i)=>setTimeout(()=>{if(world[p.y][p.x]==="empty"){world[p.y][p.x]="spike";drawWorld();}},i*80));
+  setTimeout(()=>{for(let p of positions)if(world[p.y][p.x]==="spike")world[p.y][p.x]="empty";drawWorld();},18000);
+}
+
+function corruptTrap(monster){
+  activeTraps=activeTraps.filter(t=>world[t.y][t.x]==="trap");
+  if(monster.cd2>0||activeTraps.length>=3)return;
+  monster.cd2=60;
+  /* دائرة من 3 وحدات حول الوحش */
+  let trapCells=[];
+  let radius=3;
+  for(let dy=-radius;dy<=radius;dy++)for(let dx=-radius;dx<=radius;dx++){
+    if(dx*dx+dy*dy<=radius*radius){
+      let tx=monster.x+dx,ty=monster.y+dy;
+      if(tx>=0&&ty>=0&&tx<W&&ty<H&&world[ty][tx]==="empty"){
+        world[ty][tx]="trap";trapCells.push({x:tx,y:ty});
+      }
+    }
+  }
+  activeTraps.push(...trapCells);
+  drawWorld();
+}
+
+function corruptXray(monster){
+  if(monster.cd3>0||xrayActive)return;
+  monster.cd3=60;xrayActive=true;
+  const alertEl=document.getElementById("xrayAlert");
+  const countEl=document.getElementById("xrayCountdown");
+  if(alertEl)alertEl.style.display="block";
+  let sec=4;if(countEl)countEl.textContent=sec;
+  let cdown=setInterval(()=>{sec--;if(countEl)countEl.textContent=sec;if(sec<=0){clearInterval(cdown);if(alertEl)alertEl.style.display="none";xrayActive=false;}},1000);
+}
+
+/* ══ HANDLE CELL ══ */
+function handleCell(nx,ny){
+  let cell=world[ny][nx];
+  /* عنصر وهمي */
+  let fakeIdx=halluFakeItems.findIndex(fi=>fi.x===nx&&fi.y===ny);
+  if(fakeIdx>=0){
+    halluFakeItems.splice(fakeIdx,1);
+    hp=Math.max(1,hp-3);
+    ludki("💔 Fake Item","It was a hallucination! −3 HP","damage");
+    if(hp<=0)triggerDeath("Tricked by Hallucination 🌀");
+  }
+  /* voidzone */
+  if(cell==="voidzone"){
+    world[ny][nx]="empty";
+    startHallucination(3);
+    showVoidZoneAlerts();
+    playSound(sounds.hallucination_sfx||sounds.effect);
+  }
+  if(cell==="spike"){startCorruption(2);ludki("🗡️ Spike","Corruption II!","damage");}
+  if(cell==="trap"){world[ny][nx]="empty";activeTraps=activeTraps.filter(t=>!(t.x===nx&&t.y===ny));startCorruption(3);ludki("⬛ Trap","Corruption III!","damage");}
+  if(cell==="firezone"&&!lavaImmune&&!fireProtectionActive){burnLevel=Math.max(burnLevel,1);startBurning();ludki("🔸 Fire Zone","Burning!","damage");playSound(sounds.burn);}
+  if(cell==="icezone"){startFrost(2);ludki("🔹 Ice Zone","Frost II!","damage");}
+  if(cell==="scorch"){burnLevel=0;startBurning();ludki("💨 Fire Scorch","Burning I","damage");playSound(sounds.burn);}
+  if(cell==="icescorch"){startFrost(1);ludki("🧊 Ice Scorch","Frost I","damage");}
+  if(cell==="lava"){
+    if(!lavaImmune){hp-=25;ludki("🔥 LAVA","−25 HP | Burning!","damage");playSound(sounds.burn);if(hp<=0){triggerDeath("Burned by Lava 🌋");drawWorld();return;}startBurning();}
+    else ludki("🌋 Immune","Lava has no effect!","collect");
+    return;
+  }
+  if(cell==="med"){
+    world[ny][nx]="empty";
+    startRegenII();
+    applyEffect("strengthII");
+    ludki("🧪 MED","+25 HP | Strength II 💪💪","heal");
+    playSound(sounds.med);
+  }else if(cell==="medkit"){
+    world[ny][nx]="empty";hp=100;
+    /* يشيل weakness + burning (كل المستويات) + bleeding (كل المستويات) */
+    for(let eff of["weakness","burning","bleeding","corruption"])if(activeEffects[eff]){clearTimeout(activeEffects[eff].timer);EFFECT_DEFS[eff].remove();delete activeEffects[eff];}
+    clearInterval(burningInterval);burningInterval=null;burnLevel=0;
+    clearInterval(bleedInterval);bleedInterval=null;bleedLevel=0;bleedHitCount=0;
+    applyEffect("shield");ludki("🧰 MEDKIT","Full HP + Shield 🛡️","collect");playSound(sounds.medkit);
+  }else if(cell==="bandage"){
+    let needsHealing=hp<100||activeEffects["bleeding"]||activeEffects["burning"];
+    if(needsHealing){
+      world[ny][nx]="empty";
+      startRegenI();
+      playSound(sounds.medkit);
+    }
+  }else if(cell==="energy"){
+    world[ny][nx]="empty";
+    if(activeEffects["speed"])speedLevel=Math.min(3,speedLevel+1);else speedLevel=1;
+    EFFECT_DEFS["speed"].label=`Speed ${getRoman(speedLevel)}`;
+    speedStepsLeft=speedLevel===1?4:speedLevel===2?7:12;
+    applyEffect("speed");
+    /* يديني Strength I مع السبيد */
+    applyEffect("strength");
+    ludki("🥤 Energy","Speed + Strength I!","collect");
+    playSound(sounds.effect);
+  }else if(cell==="question"){
+    world[ny][nx]="empty";applyEffect(QUESTION_EFFECTS[Math.floor(Math.random()*QUESTION_EFFECTS.length)]);playSound(sounds.effect);
+  }else if(cell==="freeze"){
+    world[ny][nx]="empty";
+    freezeMonsters=true;
+    let freezeDur=7000;
+    /* أظهر alert مع عداد */
+    let freezeEl=document.getElementById("freezeAlert");
+    if(!freezeEl){
+      freezeEl=document.createElement("div");freezeEl.id="freezeAlert";
+      freezeEl.style.cssText="position:fixed;top:50px;left:50%;transform:translateX(-50%);background:rgba(0,50,100,0.95);border:2px solid #0af;border-radius:10px;padding:10px 20px;color:#0ff;font-size:14px;z-index:9996;text-align:center;";
+      document.body.appendChild(freezeEl);
+    }
+    let freezeSec=7;
+    freezeEl.innerHTML=`🧊 Monsters Frozen<br><b style="font-size:18px">${freezeSec}s</b>`;
+    freezeEl.style.display="block";
+    let freezeCount=setInterval(()=>{
+      freezeSec--;
+      if(freezeEl)freezeEl.innerHTML=`🧊 Monsters Frozen<br><b style="font-size:18px">${freezeSec}s</b>`;
+      if(freezeSec<=0){clearInterval(freezeCount);freezeMonsters=false;if(freezeEl)freezeEl.style.display="none";}
+    },1000);
+    playSound(sounds.effect);
+  }
+  else if(cell==="poison_item"){world[ny][nx]="empty";applyEffect("poison");playSound(sounds.effect);}
+  else if(itemTarget[cell]){
+    world[ny][nx]="empty";let gain=luckyMode?2:1;
+    itemCollected[cell]=(itemCollected[cell]||0)+gain;
+    ludki("COLLECT",`+${gain} ${itemName[cell]||cell}`,"collect");
+    if(cell==="gold")playSound(sounds.gold);else if(cell==="diamond")playSound(sounds.diamond);else playSound(sounds.collect);
+  }
+}
+
+/* ══ MOVE ══ */
 const keysHeld={};
-document.addEventListener("keydown",e=>{ keysHeld[e.key]=true; });
-document.addEventListener("keyup",e=>{ keysHeld[e.key]=false; });
+document.addEventListener("keydown",e=>{keysHeld[e.key]=true;});
+document.addEventListener("keyup",e=>{keysHeld[e.key]=false;});
 
 let speedHoldInterval=null;
 function startSpeedHold(dx,dy){
-  if(speedHoldInterval) return;
-  let units=speedLevel===1?4:speedLevel===2?7:12;
-  let stepsInHold=0;
+  if(speedHoldInterval)return;
+  let units=speedLevel===1?4:speedLevel===2?7:12,stepsInHold=0;
   speedHoldInterval=setInterval(()=>{
-    if(paused||!activeEffects["speed"]){
-      clearInterval(speedHoldInterval); speedHoldInterval=null; return;
-    }
-    let anyHeld=keysHeld["ArrowUp"]||keysHeld["ArrowDown"]||keysHeld["ArrowLeft"]||keysHeld["ArrowRight"]
-               ||keysHeld["w"]||keysHeld["s"]||keysHeld["a"]||keysHeld["d"]
-               ||keysHeld["W"]||keysHeld["S"]||keysHeld["A"]||keysHeld["D"];
-    if(!anyHeld){ clearInterval(speedHoldInterval); speedHoldInterval=null; stepsInHold=0; return; }
-
-    if(stepsInHold>=units){
-      clearInterval(speedHoldInterval); speedHoldInterval=null; stepsInHold=0; return;
-    }
-
-    let nx=player.x+dx, ny=player.y+dy;
-    if(nx>=0&&ny>=0&&nx<W&&ny<H&&(world[ny][nx]!=="tree"||ghostMode)){
-      player.x=nx;player.y=ny;
-      playSoundOnce(sounds.walk);
-      updateBurningTimer();
-      handleCell(nx,ny);
-      drawWorld();
+    if(paused||!activeEffects["speed"]){clearInterval(speedHoldInterval);speedHoldInterval=null;return;}
+    let anyHeld=keysHeld["ArrowUp"]||keysHeld["ArrowDown"]||keysHeld["ArrowLeft"]||keysHeld["ArrowRight"]||keysHeld["w"]||keysHeld["s"]||keysHeld["a"]||keysHeld["d"]||keysHeld["W"]||keysHeld["S"]||keysHeld["A"]||keysHeld["D"];
+    if(!anyHeld){clearInterval(speedHoldInterval);speedHoldInterval=null;stepsInHold=0;return;}
+    if(stepsInHold>=units){clearInterval(speedHoldInterval);speedHoldInterval=null;stepsInHold=0;return;}
+    let nx=player.x+dx,ny=player.y+dy;
+    if(nx>=0&&ny>=0&&nx<W&&ny<H&&(world[ny][nx]!=="tree"||ghostMode)&&world[ny][nx]!=="spike"){
+      player.x=nx;player.y=ny;playSoundOnce(sounds.walk);updateBurningTimer();handleCell(nx,ny);drawWorld();
     }
     stepsInHold++;
   },80);
 }
 
+/* ══ PAUSE ══ */
+function togglePause(){
+  paused=!paused;
+  const menu=document.getElementById("pauseMenu");
+  const btn=document.getElementById("btn-pause");
+  if(paused){
+    pausedAt=Date.now();
+    /* أوقف كل شيء */
+    stopAllMusic();
+    clearInterval(window._gameLoop);window._gameLoop=null;
+    /* أوقف كل الـ damage/heal intervals */
+    if(bleedInterval){clearInterval(bleedInterval);bleedInterval=null;}
+    if(poisonInterval){clearInterval(poisonInterval);poisonInterval=null;}
+    if(burningInterval){clearInterval(burningInterval);burningInterval=null;}
+    if(frostInterval){clearInterval(frostInterval);frostInterval=null;}
+    if(corruptInterval){clearInterval(corruptInterval);corruptInterval=null;}
+    if(healUpInterval){clearInterval(healUpInterval);healUpInterval=null;}
+    if(halluInterval){clearInterval(halluInterval);halluInterval=null;}
+    /* أوقف كل الـ effect setTimeout timers */
+    for(let n in activeEffects){
+      if(activeEffects[n].timer){clearTimeout(activeEffects[n].timer);activeEffects[n].timer=null;}
+    }
+    if(menu)menu.style.display="flex";
+    if(btn)btn.innerHTML='<i class="fas fa-play"></i>';
+    document.getElementById("pauseInfo").innerHTML=`❤️ ${hp}/100 | 🏆 Lvl ${stage}<br>👹 ${monsters.length} monsters`;
+  }else{
+    /* حساب مدة الـ pause */
+    let pausedDuration=Date.now()-pausedAt;
+    /* أعد كل الـ endTimes للأمام بمقدار مدة الـ pause */
+    for(let n in activeEffects){
+      if(activeEffects[n].endTime){
+        activeEffects[n].endTime+=pausedDuration;
+        /* أعد تشغيل الـ setTimeout */
+        let remaining=activeEffects[n].endTime-Date.now();
+        if(remaining>0){
+          activeEffects[n].timer=setTimeout(()=>{
+            if(EFFECT_DEFS[n])EFFECT_DEFS[n].remove();
+            delete activeEffects[n];
+            drawHud();
+          },remaining);
+        } else {
+          if(EFFECT_DEFS[n])EFFECT_DEFS[n].remove();
+          delete activeEffects[n];
+        }
+      }
+    }
+    /* أعد تشغيل كل الـ damage intervals */
+    if(activeEffects["bleeding"]&&!bleedInterval){
+      let dps=getBleedDPS(bleedLevel);
+      bleedInterval=setInterval(()=>{if(paused)return;if(!activeEffects["bleeding"]){clearInterval(bleedInterval);bleedInterval=null;return;}hp-=dps;ludki(`🩸 Bleeding ${getRoman(bleedLevel)}`,`−${dps} HP/s`,"damage");playSound(sounds.bleed);if(hp<=0)triggerDeath("Bled out");drawWorld();},1000);
+    }
+    if(activeEffects["poison"]&&!poisonInterval){
+      let dps=getPoisonDPS(poisonLevel);
+      poisonInterval=setInterval(()=>{if(paused)return;if(!activeEffects["poison"]){clearInterval(poisonInterval);poisonInterval=null;return;}hp-=dps;ludki(`☠️ Poison ${getRoman(poisonLevel)}`,`−${dps} HP/s`,"damage");if(hp<=0)triggerDeath("Poisoned");drawWorld();},1000);
+    }
+    if(activeEffects["burning"]&&!burningInterval){
+      let dps=getBurnDPS(burnLevel);
+      burningInterval=setInterval(()=>{if(paused)return;if(!activeEffects["burning"]){clearInterval(burningInterval);burningInterval=null;return;}hp-=dps;ludki(`🔥 Burning ${getRoman(burnLevel)}`,`−${dps} HP/2s`,"damage");playSound(sounds.burn);if(hp<=0)triggerDeath("Burned");drawWorld();},2000);
+    }
+    if(activeEffects["frost"]&&!frostInterval){
+      let dps=getFrostDPS(frostLevel);
+      frostInterval=setInterval(()=>{if(paused)return;if(!activeEffects["frost"]){clearInterval(frostInterval);frostInterval=null;return;}hp-=dps;ludki(`❄️ Frost ${getRoman(frostLevel)}`,`−${dps} HP/s`,"damage");if(hp<=0)triggerDeath("Frozen");drawWorld();},1000);
+    }
+    if(activeEffects["corruption"]&&!corruptInterval){
+      let dps=getCorruptDPS(corruptLevel);
+      corruptInterval=setInterval(()=>{if(paused)return;if(!activeEffects["corruption"]){clearInterval(corruptInterval);corruptInterval=null;return;}hp-=dps;ludki(`🟣 Corruption ${getRoman(corruptLevel)}`,`−${dps} HP/s`,"damage");if(hp<=0)triggerDeath("Corrupted");drawWorld();},1000);
+    }
+    /* أعد تشغيل hallu interval إن وجد */
+    let halluLevel=activeEffects["hallucinationI"]?1:activeEffects["hallucinationII"]?2:activeEffects["hallucinationIII"]?3:0;
+    if(halluLevel>0&&!halluInterval) startHallucination(halluLevel);
+    if(currentChase)playMonsterMusic(currentChase,closestDistCache||99);else resumeBg();
+    window._gameLoop=setInterval(gameLoop,500);
+    if(menu)menu.style.display="none";
+    if(btn)btn.innerHTML='<i class="fas fa-pause"></i>';
+  }
+}
+
 document.addEventListener("keydown",e=>{
-  if(e.repeat && !activeEffects["speed"]) return;
-
-  if(e.key==="Escape"){
-    paused=!paused;
-    if(paused){
-      stopAllMusic();
-      clearInterval(window._gameLoop); window._gameLoop=null;
-    } else {
-      if(currentChase) playMonsterMusic(currentChase, closestDistCache||99);
-      else resumeBg();
-      window._gameLoop=setInterval(gameLoop,500);
-    }
-    ludki(paused?"PAUSED":"RESUME",paused?"Game Stopped":"Game Running","pause");
-    return;
-  }
+  if(e.repeat&&!activeEffects["speed"])return;
+  if(e.key==="Escape"){togglePause();return;}
   if(paused)return;
-
   let dx=0,dy=0;
-  if(e.key==="ArrowUp"   ||e.key==="w"||e.key==="W") dy=-1;
-  else if(e.key==="ArrowDown" ||e.key==="s"||e.key==="S") dy=1;
-  else if(e.key==="ArrowLeft" ||e.key==="a"||e.key==="A") dx=-1;
-  else if(e.key==="ArrowRight"||e.key==="d"||e.key==="D") dx=1;
+  if(e.key==="ArrowUp"||e.key==="w"||e.key==="W")dy=-1;
+  else if(e.key==="ArrowDown"||e.key==="s"||e.key==="S")dy=1;
+  else if(e.key==="ArrowLeft"||e.key==="a"||e.key==="A")dx=-1;
+  else if(e.key==="ArrowRight"||e.key==="d"||e.key==="D")dx=1;
   else return;
-
-  let movesThisPress=1;
-  if(activeEffects["speed"] && speedStepsLeft>0){
-    movesThisPress=1;
-    speedStepsLeft--;
-    if(speedStepsLeft<=0){
-      let units=speedLevel===1?4:speedLevel===2?7:12;
-      speedStepsLeft=units;
-    }
+  if(activeEffects["speed"]){startSpeedHold(dx,dy);return;}
+  let nx=player.x+dx,ny=player.y+dy;
+  if(nx<0||ny<0||nx>=W||ny>=H)return;
+  if(world[ny][nx]==="tree"&&!ghostMode)return;
+  if(world[ny][nx]==="spike")return; /* spikes are impassable */
+  player.x=nx;player.y=ny;
+  playSoundOnce(sounds.walk);updateBurningTimer();handleCell(nx,ny);drawWorld();
+});
+document.addEventListener("keyup",e=>{
+  if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","w","a","s","d","W","A","S","D"].includes(e.key)){
+    sounds.walk.pause();sounds.walk.currentTime=0;clearInterval(speedHoldInterval);speedHoldInterval=null;
   }
-
-  for(let step=0;step<movesThisPress;step++){
-    let nx=player.x+dx, ny=player.y+dy;
-    if(nx<0||ny<0||nx>=W||ny>=H) break;
-    if(world[ny][nx]==="tree"&&!ghostMode) break;
-    
-    player.x=nx; player.y=ny;
-    playSoundOnce(sounds.walk);
-    updateBurningTimer();
-    handleCell(nx,ny);
-  }
-  drawWorld();
 });
 
-/* Mobile Controls */
-function setupMobileControls() {
-    const controls = {
-        'btn-up': { x: 0, y: -1 },
-        'btn-down': { x: 0, y: 1 },
-        'btn-left': { x: -1, y: 0 },
-        'btn-right': { x: 1, y: 0 }
-    };
-
-    Object.keys(controls).forEach(id => {
-        const btn = document.getElementById(id);
-        if (btn) {
-            btn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                movePlayerMobile(controls[id].x, controls[id].y);
-            });
-            btn.addEventListener('mousedown', (e) => {
-                movePlayerMobile(controls[id].x, controls[id].y);
-            });
-        }
-    });
+/* ══ MOBILE CONTROLS ══ */
+function movePlayer(dx,dy){
+  if(paused)return;
+  let nx=player.x+dx,ny=player.y+dy;
+  if(nx<0||ny<0||nx>=W||ny>=H)return;
+  if(world[ny][nx]==="tree"&&!ghostMode)return;
+  if(world[ny][nx]==="spike")return;
+  player.x=nx;player.y=ny;
+  playSoundOnce(sounds.walk);updateBurningTimer();handleCell(nx,ny);drawWorld();
 }
-
-function movePlayerMobile(dx, dy) {
-    if (paused) return;
+let mobileHoldInterval=null;
+function startMobileHold(dx,dy){
+  if(paused)return;
+  movePlayer(dx,dy);
+  if(mobileHoldInterval)return;
+  /* حركة مستمرة أثناء الضغط المطوّل */
+  mobileHoldInterval=setInterval(()=>{
+    if(paused){stopMobileHold();return;}
+    movePlayer(dx,dy);
+  },activeEffects["speed"]?150:220);
+}
+function stopMobileHold(){clearInterval(mobileHoldInterval);mobileHoldInterval=null;sounds.walk.pause();sounds.walk.currentTime=0;}
+function setupMobileControls(){
+  /* منع سكرول الصفحة تماماً */
+  document.body.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
+  
+  const map={'btn-up':{dx:0,dy:-1},'btn-down':{dx:0,dy:1},'btn-left':{dx:-1,dy:0},'btn-right':{dx:1,dy:0}};
+  Object.entries(map).forEach(([id,{dx,dy}])=>{
+    const btn=document.getElementById(id);
+    if(!btn)return;
+    btn.setAttribute('tabindex','-1');
+    btn.style.cssText+=';-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;touch-action:none;';
     
-    let nx = player.x + dx, ny = player.y + dy;
-    if (nx >= 0 && nx < W && ny >= 0 && ny < H && (world[ny][nx] !== "tree" || ghostMode)) {
-        player.x = nx;
-        player.y = ny;
-        playSoundOnce(sounds.walk);
-        updateBurningTimer();
-        handleCell(nx, ny);
-        drawWorld();
-    }
-}
-
-setupMobileControls();
-
-function handleCell(nx,ny){
-  let cell=world[ny][nx];
-
-  if(cell==="spike"){
-    startCorruption();
-    ludki("🗡️ Spike!","Corruption II!","damage");
-    playSound(sounds.corruption_sound);
-  }
-  else if(cell==="trap"){
-    startCorruption();
-    world[ny][nx]="empty"; // الفخ يختفي
-    ludki("🟫 Trap!","Corruption III!","damage");
-    playSound(sounds.corruption_sound);
-  }
-  else if(cell==="med"){
-    world[ny][nx]="empty";
-    hp=Math.min(100,hp+15);
-    for(let eff of ["weakness","poison"]){
-      if(activeEffects[eff]){
-        clearTimeout(activeEffects[eff].timer);
-        EFFECT_DEFS[eff].remove();
-        delete activeEffects[eff];
-      }
-    }
-    applyEffect("strength");
-    ludki("🧪 MED","+15 HP | Strength 💪","heal");
-    playSound(sounds.med);
-  }
-  else if(cell==="medkit"){
-    world[ny][nx]="empty"; hp=100;
-    applyEffect("shield");
-    ludki("🧰 MEDKIT","Full HP + Shield 🛡️","collect");
-    playSound(sounds.medkit);
-  }
-  else if(cell==="bandage"){
-    let needsHealing = hp < 100 || activeEffects["bleeding"] || activeEffects["burning"] || activeEffects["corruption"];
-    if(needsHealing){
-      world[ny][nx]="empty";
-      hp=Math.min(100,hp+10);
-      for(let eff of ["bleeding","burning","corruption"]){
-        if(activeEffects[eff]){
-          clearTimeout(activeEffects[eff].timer);
-          EFFECT_DEFS[eff].remove();
-          delete activeEffects[eff];
-        }
-      }
-      clearInterval(corruptionInterval); corruptionInterval=null;
-      ludki("🩹 BANDAGE","+10 HP | Effects cleared","heal");
-      playSound(sounds.medkit);
-    }
-  }
-  else if(cell==="energy"){
-    world[ny][nx]="empty";
-    if(activeEffects["speed"]) speedLevel=Math.min(3,speedLevel+1);
-    else speedLevel=1;
-    EFFECT_DEFS["speed"].label=`Speed ${getRoman(speedLevel)}`;
-    let units=speedLevel===1?4:speedLevel===2?7:12;
-    speedStepsLeft=units;
-    applyEffect("speed");
-    playSound(sounds.effect);
-  }
-  else if(cell==="question"){
-    world[ny][nx]="empty";
-    let eff=QUESTION_EFFECTS[Math.floor(Math.random()*QUESTION_EFFECTS.length)];
-    applyEffect(eff);
-    playSound(sounds.effect);
-  }
-  else if(cell==="freeze"){
-    world[ny][nx]="empty";
-    applyEffect("freeze");
-    playSound(sounds.effect);
-  }
-  else if(cell==="poison_item"){
-    world[ny][nx]="empty";
-    applyEffect("poison");
-    playSound(sounds.effect);
-  }
-  else if(itemTarget[cell]){
-    world[ny][nx]="empty";
-    let gain=luckyMode?2:1;
-    itemCollected[cell]=(itemCollected[cell]||0)+gain;
-    ludki("COLLECT",`+${gain} ${itemName[cell]||cell}`,"collect");
-    if(cell==="gold")         playSound(sounds.gold);
-    else if(cell==="diamond") playSound(sounds.diamond);
-    else                      playSound(sounds.collect);
+    btn.ontouchstart=e=>{
+      e.preventDefault();
+      if(!paused) startMobileHold(dx,dy);
+      return false;
+    };
+    btn.ontouchend=e=>{
+      e.preventDefault();
+      stopMobileHold();
+      return false;
+    };
+    btn.ontouchcancel=e=>{
+      e.preventDefault();
+      stopMobileHold();
+      return false;
+    };
+    btn.onmousedown=e=>{e.preventDefault();if(!paused)startMobileHold(dx,dy);};
+    btn.onmouseup=()=>stopMobileHold();
+    btn.onmouseleave=()=>stopMobileHold();
+    btn.oncontextmenu=e=>e.preventDefault();
+  });
+  
+  const pauseBtn=document.getElementById('btn-pause');
+  if(pauseBtn){
+    pauseBtn.style.cssText+=';-webkit-tap-highlight-color:transparent;touch-action:none;';
+    pauseBtn.ontouchstart=e=>{e.preventDefault();togglePause();return false;};
+    pauseBtn.onclick=e=>{e.preventDefault();togglePause();};
   }
 }
 
-/* ══ BURNING SYSTEM ══ */
-const BURN_DURATION = 7000;
-
-function startBurning(){
-  burnLevel = Math.min(3, burnLevel+1);
-  let bdps = getBurnDPS(burnLevel);
-  let bdur = onLava ? 99999999 : getLevelDur(burnLevel);
-
-  EFFECT_DEFS["burning"].label=`Burning ${getRoman(burnLevel)}`;
-
-  clearInterval(burningInterval);
-  if(activeEffects["burning"]) clearTimeout(activeEffects["burning"].timer);
-
-  burningInterval=setInterval(()=>{
-    if(paused)return;
-    if(!activeEffects["burning"]){clearInterval(burningInterval);burningInterval=null;return;}
-    hp-=bdps;
-    ludki(`🔥 Burning ${getRoman(burnLevel)}`,`−${bdps} HP/s`,"damage");
-    playSound(sounds.burn);
-    if(hp<=0) triggerDeath(`Burned to death 🔥 ${getRoman(burnLevel)}`);
-    drawWorld();
-  },1000);
-
-  activeEffects["burning"]={
-    endTime:Date.now()+bdur,
-    timer:setTimeout(()=>{
-      clearInterval(burningInterval); burningInterval=null;
-      burnLevel=0;
-      delete activeEffects["burning"];
-      drawHud();
-    },bdur)
-  };
-  ludki(`🔥 Burning ${getRoman(burnLevel)}`,"Watch out!","damage");
-  drawHud();
-}
-
-function updateBurningTimer(){
-  onLava=(world[player.y]&&world[player.y][player.x]==="lava");
-  if(!onLava&&burnLevel>0&&(!activeEffects["burning"]||!burningInterval)){
-    startBurning();
-  }
-}
-
-/* ══ FROST SYSTEM ══ */
-function startFrost(level){
-  let frostHitCount=0;
-  frostLevel = Math.min(3, level||frostHitCount);
-  let fdps = getFrostDPS(frostLevel);
-  let fdur = getLevelDur(frostLevel);
-  EFFECT_DEFS["frost"].label = `Frost ${getRoman(frostLevel)}`;
-
-  clearInterval(frostInterval);
-  if(activeEffects["frost"]) clearTimeout(activeEffects["frost"].timer);
-
-  frostInterval=setInterval(()=>{
-    if(paused)return;
-    if(!activeEffects["frost"]){clearInterval(frostInterval);frostInterval=null;return;}
-    hp-=fdps;
-    ludki(`❄️ Frost ${getRoman(frostLevel)}`,`−${fdps} HP/s`,"damage");
-    if(hp<=0) triggerDeath(`Frozen to death ❄️ ${getRoman(frostLevel)}`);
-    drawWorld();
-  },1000);
-
-  activeEffects["frost"]={
-    endTime:Date.now()+fdur,
-    timer:setTimeout(()=>{
-      EFFECT_DEFS["frost"].remove();
-      delete activeEffects["frost"];
-      drawHud();
-    },fdur)
-  };
-  ludki(`❄️ Frost ${getRoman(frostLevel)}`,"Watch out!","damage");
-  drawHud();
-}
-
-/* ══ BLEEDING SYSTEM ══ */
-function startBleeding(){
-  bleedHitCount++;
-
-  let newLevel = bleedLevel;
-  if(hp < 30 || bleedHitCount >= 3)      newLevel=3;
-  else if(hp < 60 || bleedHitCount >= 2) newLevel=2;
-  else                                    newLevel=1;
-
-  bleedLevel = newLevel;
-
-  clearInterval(bleedInterval);
-  if(activeEffects["bleeding"]) clearTimeout(activeEffects["bleeding"].timer);
-
-  let dps = getBleedDPS(bleedLevel);
-  let label = `Bleeding ${getRoman(bleedLevel)}`;
-
-  bleedInterval=setInterval(()=>{
-    if(paused)return;
-    if(!activeEffects["bleeding"]){clearInterval(bleedInterval);bleedInterval=null;return;}
-    hp-=dps;
-    ludki(`🩸 ${label}`,`−${dps} HP/s`,"damage");
-    playSound(sounds.bleed);
-    if(hp<=0) triggerDeath(`Bled out 🩸 ${getRoman(bleedLevel)}`);
-    drawWorld();
-  },1000);
-
-  EFFECT_DEFS["bleeding"].label=label;
-
-  let bleedDur=getLevelDur(bleedLevel);
-  activeEffects["bleeding"]={
-    endTime: Date.now()+bleedDur,
-    timer: setTimeout(()=>{
-      clearInterval(bleedInterval); bleedInterval=null;
-      bleedLevel=0; bleedHitCount=0;
-      delete activeEffects["bleeding"];
-      drawHud();
-    },bleedDur)
-  };
-  drawHud();
-}
-
-let currentChase=null;
-let closestDistCache=99;
-
-function gameLoop(){
-  moveMonsters();
-  checkWin();
-  updateVFX();
-}
-
+/* ══ MONSTERS ══ */
 function moveMonsters(){
-  if(paused || freezeMonsters) return;
-
-  let closestMonster=null, closestDist=Infinity; closestDistCache=Infinity;
+  if(paused)return;
+  let closestMonster=null,closestDist=Infinity;closestDistCache=Infinity;
+  monsters.forEach(m=>{let d=Math.abs(m.x-player.x)+Math.abs(m.y-player.y);if(d<closestDist){closestDist=d;closestMonster=m;closestDistCache=d;}});
+  /* شغل موسيقى كل وحش قريب */
+  let anyChase=false;
   monsters.forEach(m=>{
     let d=Math.abs(m.x-player.x)+Math.abs(m.y-player.y);
-    if(d<closestDist){closestDist=d;closestMonster=m;closestDistCache=d;}
+    if(d<=14){playMonsterMusic(m.type,d);anyChase=true;}
   });
-
   let newState=closestDist<=14?closestMonster?.type:null;
-  if(newState){
-    playMonsterMusic(newState, closestDist);
-    currentChase=newState;
-  } else if(currentChase!==null){
-    stopChase();
-    currentMonsterTrack=null;
-    resumeBg();
-    currentChase=null;
-  }
-
-  monsters.forEach(m=>{ 
-    if(m.cd1>0)m.cd1--; 
-    if(m.cd2>0)m.cd2--; 
-    if(m.cd3>0)m.cd3--; 
-  });
-
-  // تفعيل قدرات الوحش الفاسد
+  if(newState){currentChase=newState;}
+  else if(currentChase!==null&&!anyChase){stopChase();resumeBg();currentChase=null;}
+  if(freezeMonsters)return;
+  monsters.forEach(m=>{if(m.cd1>0)m.cd1--;if(m.cd2>0)m.cd2--;if(m.cd3>0)m.cd3--;});
   monsters.forEach(m=>{
     let dist=Math.abs(m.x-player.x)+Math.abs(m.y-player.y);
+    if(m.type==="fire"){if(dist<=6)flameSurge(m);if(dist<=8)fireFireball(m);}
+    if(m.type==="ice"){if(dist<=6)iceStorm(m);if(dist<=8)fireIceBolt(m);}
     if(m.type==="corruption"){
-      if(dist<=8) corruptionSpikes(m);
-      if(dist<=6) corruptionTrap(m);
-      if(dist<=12) corruptionXray(m);
+      if(dist<=30)corruptXray(m);
+      if(dist<=12)corruptSpikes(m);
+      if(dist<=8)corruptTrap(m);
+    }
+    if(m.type==="infected"){
+      if(dist<=15)infectedRush(m);
+      if(dist<=10)infectedVoidStar(m);
+      if(dist<=20)infectedTeleport(m);
+      /* Rush timer */
+      if(m.rushing){
+        m.rushTimer--;
+        if(m.rushTimer<=0){m.rushing=false;}
+      }
     }
   });
-
   monsters.forEach(m=>{
-    let passable=["empty","med","medkit","energy","question","freeze","poison_item",
-                  "bandage","gold","copper","silver","diamond","iron","obsidian",
-                  "spike","trap"];
-    let moves=[
-      {x:m.x+1,y:m.y},{x:m.x-1,y:m.y},{x:m.x,y:m.y+1},{x:m.x,y:m.y-1}
-    ].filter(o=>o.x>=0&&o.y>=0&&o.x<W&&o.y<H&&passable.includes(world[o.y][o.x]));
-    moves.sort((a,b)=>(Math.abs(a.x-player.x)+Math.abs(a.y-player.y))-(Math.abs(b.x-player.x)+Math.abs(b.y-player.y)));
-    if(moves[0]){m.x=moves[0].x;m.y=moves[0].y;}
+    /* الوحش الـ Corruption يخترق الـ spikes - الكل يمشي علي traps بدون تأثير */
+    let basePassable=["empty","med","medkit","energy","question","freeze","poison_item","bandage","gold","copper","silver","diamond","iron","obsidian","firezone","icezone","lava","scorch","icescorch","trap","voidzone","voidstar"];
+    let passable=m.type==="corruption"?[...basePassable,"spike"]:basePassable;
+
+    /* X-Ray: لو الوحش فاسد ونشط يتجه مباشرة للاعب حتى من بعيد */
+    let targetX=player.x,targetY=player.y;
+    let moves=[{x:m.x+1,y:m.y},{x:m.x-1,y:m.y},{x:m.x,y:m.y+1},{x:m.x,y:m.y-1}]
+      .filter(o=>o.x>=0&&o.y>=0&&o.x<W&&o.y<H&&passable.includes(world[o.y][o.x]));
+    moves.sort((a,b)=>(Math.abs(a.x-targetX)+Math.abs(a.y-targetY))-(Math.abs(b.x-targetX)+Math.abs(b.y-targetY)));
+    if(moves[0]){
+      m.x=moves[0].x;m.y=moves[0].y;
+      /* Rush: خطوة إضافية */
+      if(m.type==="infected"&&m.rushing){
+        let moves2=[{x:m.x+1,y:m.y},{x:m.x-1,y:m.y},{x:m.x,y:m.y+1},{x:m.x,y:m.y-1}]
+          .filter(o=>o.x>=0&&o.y>=0&&o.x<W&&o.y<H&&passable.includes(world[o.y][o.x]));
+        moves2.sort((a,b)=>(Math.abs(a.x-player.x)+Math.abs(a.y-player.y))-(Math.abs(b.x-player.x)+Math.abs(b.y-player.y)));
+        if(moves2[0]){m.x=moves2[0].x;m.y=moves2[0].y;}
+      }
+    }
 
     if(m.x===player.x&&m.y===player.y&&!shield&&!magicShieldActive&&!invincibleMode&&!hitCooldown){
       if(magicShieldActive){
         ludki("🔮 Blocked!","Magic Shield absorbed!","collect");
-        clearTimeout(activeEffects["magicShield"]?.timer);
-        delete activeEffects["magicShield"];
-        EFFECT_DEFS.magicShield.remove();
-        return;
+        clearTimeout(activeEffects["magicShield"]?.timer);delete activeEffects["magicShield"];EFFECT_DEFS.magicShield.remove();return;
       }
-      let baseDmg=m.type==="corruption"?22:m.type==="fire"?17:m.type==="ice"?20:20;
-      let dmg=weaknessActive?baseDmg*2:strengthActive?Math.floor(baseDmg*0.35):baseDmg;
-      hp-=dmg; hitCooldown=true;
-      setTimeout(()=>hitCooldown=false,1000);
-      ludki("HIT",`−${dmg} HP`,"damage");
-      playSound(sounds.hit);
-      
-      if(m.type==="corruption") startCorruption();
-      else if(m.type==="fire")  startBurning();
-      else if(m.type==="ice") startFrost(1);
+      let baseDmg=m.type==="fire"?17:m.type==="corruption"?22:m.type==="infected"?26:20;
+      let dmgReduction=strengthLevel===3?0.2:strengthLevel===2?0.28:0.35;
+let dmg=weaknessActive?baseDmg*2:strengthActive?Math.floor(baseDmg*dmgReduction):baseDmg;
+      hp-=dmg;hitCooldown=true;setTimeout(()=>hitCooldown=false,1000);
+      ludki("HIT",`−${dmg} HP`,"damage");playSound(sounds.hit);
+      if(m.type==="fire")startBurning();
+      else if(m.type==="ice")startFrost(1);
+      else if(m.type==="corruption")startCorruption(1);
+      else if(m.type==="infected"){
+        startHallucination(m.rushing?2:1);
+        playSound(sounds.hallucination_sfx||sounds.hit);
+      }
       else startBleeding();
-      
-      if(hp<=0) triggerDeath(`Killed by ${m.type==="corruption"?"🟣 Corruption Monster":m.type==="fire"?"🔥 Fire Monster":m.type==="ice"?"❄️ Ice Monster":"👹 Monster"}`);
+      if(hp<=0)triggerDeath(`Killed by ${m.type==="fire"?"🔴 Fire":m.type==="ice"?"🔵 Ice":m.type==="corruption"?"🟣 Corruption":"👹"} Monster`);
     }
   });
 }
 
+/* ══ WIN ══ */
 function checkWin(){
   if(paused||levelCleared)return;
-  let done=true;
-  for(let k in itemTarget) if((itemCollected[k]||0)<itemTarget[k]){done=false;break;}
+  let done=true;for(let k in itemTarget)if((itemCollected[k]||0)<itemTarget[k]){done=false;break;}
   if(done){
-    levelCleared=true; stage++;
-    ludki("LEVEL COMPLETE","→ Level "+stage,"level");
-    playSound(sounds.level);
-    stopAllMusic(); currentChase=null;
-    
-    // تنظيف قدرات الوحش الفاسد
-    monsters.forEach(m=>{
-      if(m.xrayTimer) clearTimeout(m.xrayTimer);
-      m.xrayActive = false;
-    });
-    
-    setTimeout(()=>{
-      createWorld(); placeItems(); spawnMonsters(); drawWorld();
-      levelCleared=false;
-      playRandomBg();
-    },1200);
+    levelCleared=true;stage++;
+    ludki("LEVEL COMPLETE","→ Level "+stage,"level");playSound(sounds.level);
+    stopAllMusic();currentChase=null;
+    setTimeout(()=>{createWorld();placeItems();spawnMonsters();drawWorld();levelCleared=false;playRandomBg();},1200);
   }
 }
 
-function triggerDeath(reason){
-  clearInterval(bleedInterval); bleedInterval=null; bleedLevel=0; bleedHitCount=0;
-  clearInterval(poisonInterval); poisonInterval=null; poisonLevel=0; poisonHitCount=0;
-  clearInterval(frostInterval); frostInterval=null; frostLevel=0; frostHitCount=0;
-  clearInterval(corruptionInterval); corruptionInterval=null; corruptionLevel=0; corruptionHitCount=0;
-  burnLevel=0;
-  
-  // تنظيف قدرات الوحش الفاسد
-  monsters.forEach(m=>{
-    if(m.xrayTimer) clearTimeout(m.xrayTimer);
-    m.xrayActive = false;
-  });
-  
-  resetEffects();
-  
-  hp=100; hitCooldown=false; levelCleared=false;
-  paused=true;
-  stopAllMusic(); currentChase=null;
-  playSound(sounds.gameover);
-  document.getElementById("gameOverReason").textContent=reason;
-  document.getElementById("gameOverScreen").classList.add("show");
-}
-
+/* ══ VFX ══ */
 function updateVFX(){
-  let classes=[];
-  if(activeEffects["bleeding"])  classes.push("vfx-bleeding");
-  if(activeEffects["poison"])    classes.push("vfx-poison");
-  if(activeEffects["burning"])   classes.push("vfx-burning");
-  if(activeEffects["frost"])     classes.push("vfx-frost");
-  if(activeEffects["corruption"]) classes.push("vfx-corruption");
-  if(activeEffects["blind"])     classes.push("vfx-blind");
-  document.body.className=classes.join(" ");
+  let cls=[];
+  if(activeEffects["bleeding"])cls.push("vfx-bleeding");
+  if(activeEffects["poison"])cls.push("vfx-poison");
+  if(activeEffects["burning"])cls.push("vfx-burning");
+  if(activeEffects["frost"])cls.push("vfx-frost");
+  if(activeEffects["blind"])cls.push("vfx-blind");
+  if(activeEffects["weakness"])cls.push("vfx-weakness");
+  if(activeEffects["corruption"])cls.push("vfx-corruption");
+  if(activeEffects["hallucinationI"]||activeEffects["hallucinationII"]||activeEffects["hallucinationIII"])cls.push("vfx-hallucination");
+  if(activeEffects["hallucinationI"])cls.push("vfx-hallucination1");
+  document.body.className=cls.join(" ");
 }
 
-document.getElementById("retryBtn").addEventListener("click",()=>{
-  document.getElementById("gameOverScreen").classList.remove("show");
-  paused=false;
-  playSound(sounds.restart);
-  createWorld(); placeItems(); spawnMonsters(); drawWorld();
-  resumeBg();
-});
-
-/* GAME LOOP */
+/* ══ GAME LOOP ══ */
+function gameLoop(){moveMonsters();checkWin();drawWorld();updateVFX();}
 window._gameLoop=setInterval(gameLoop,500);
 
-/* START */
-createWorld(); placeItems(); spawnMonsters(); drawWorld();
-playRandomBg();
+/* ══ ADMIN COMMANDS ══ */
+function reachLevel(n){stage=n;createWorld();placeItems();spawnMonsters();drawWorld();playRandomBg();console.log(`%c✅ Level ${n}`,"color:lime;font-size:14px");}
+function setStage(n){reachLevel(n);}
+function setHP(n){hp=Math.max(1,Math.min(100,n));drawWorld();console.log(`%c✅ HP = ${hp}`,"color:lime;font-size:14px");}
+function maxHP(){hp=100;drawWorld();}
+function godMode(){
+  applyEffect("invincible");
+  if(window._godInterval)clearInterval(window._godInterval);
+  window._godInterval=setInterval(()=>{if(!activeEffects["invincible"])applyEffect("invincible");},5000);
+  console.log("%c✅ God Mode ON","color:gold;font-size:14px");
+}
+function die(){triggerDeath("💀 Admin Command");}
+function giveEffect(name,durationSec,level){
+  if(!EFFECT_DEFS[name]){console.log(`%c❌ Unknown: ${name}`,"color:red");return;}
+  if(activeEffects[name]){clearTimeout(activeEffects[name].timer);EFFECT_DEFS[name].remove();delete activeEffects[name];}
+  let dur=durationSec*1000;
+  const lvlMap={
+    bleeding:(l)=>{bleedLevel=Math.min(3,l);bleedHitCount=l;EFFECT_DEFS["bleeding"].label=`Bleeding ${getRoman(l)}`;let dps=getBleedDPS(l);clearInterval(bleedInterval);bleedInterval=setInterval(()=>{if(paused)return;hp-=dps;if(hp<=0)triggerDeath("Bled out");drawWorld();},1000);activeEffects["bleeding"]={endTime:Date.now()+dur,timer:setTimeout(()=>{clearInterval(bleedInterval);bleedInterval=null;bleedLevel=0;delete activeEffects["bleeding"];drawHud();},dur)};drawHud();},
+    poison:(l)=>{poisonLevel=Math.min(3,l);poisonHitCount=l;EFFECT_DEFS["poison"].label=`Poison ${getRoman(l)}`;let dps=getPoisonDPS(l);clearInterval(poisonInterval);poisonInterval=setInterval(()=>{if(paused)return;hp-=dps;if(hp<=0)triggerDeath("Poisoned");drawWorld();},1000);activeEffects["poison"]={endTime:Date.now()+dur,timer:setTimeout(()=>{clearInterval(poisonInterval);poisonInterval=null;poisonLevel=0;delete activeEffects["poison"];drawHud();},dur)};drawHud();},
+    burning:(l)=>{burnLevel=Math.min(3,l);EFFECT_DEFS["burning"].label=`Burning ${getRoman(l)}`;let dps=getBurnDPS(l);clearInterval(burningInterval);burningInterval=setInterval(()=>{if(paused)return;hp-=dps;if(hp<=0)triggerDeath("Burned");drawWorld();},2000);activeEffects["burning"]={endTime:Date.now()+dur,timer:setTimeout(()=>{clearInterval(burningInterval);burningInterval=null;burnLevel=0;delete activeEffects["burning"];drawHud();},dur)};drawHud();},
+    frost:(l)=>{frostLevel=Math.min(3,l);EFFECT_DEFS["frost"].label=`Frost ${getRoman(l)}`;let dps=getFrostDPS(l);clearInterval(frostInterval);frostInterval=setInterval(()=>{if(paused)return;hp-=dps;if(hp<=0)triggerDeath("Frozen");drawWorld();},1000);activeEffects["frost"]={endTime:Date.now()+dur,timer:setTimeout(()=>{clearInterval(frostInterval);frostInterval=null;frostLevel=0;delete activeEffects["frost"];drawHud();},dur)};drawHud();},
+    corruption:(l)=>{corruptLevel=Math.min(3,l);corruptHitCount=l;EFFECT_DEFS["corruption"].label=`Corruption ${getRoman(l)}`;let dps=getCorruptDPS(l);clearInterval(corruptInterval);corruptInterval=setInterval(()=>{if(paused)return;hp-=dps;if(hp<=0)triggerDeath("Corrupted");drawWorld();},1000);activeEffects["corruption"]={endTime:Date.now()+dur,timer:setTimeout(()=>{clearInterval(corruptInterval);corruptInterval=null;corruptLevel=0;delete activeEffects["corruption"];drawHud();},dur)};drawHud();}
+  };
+  if(level&&lvlMap[name]){lvlMap[name](level);console.log(`%c✅ ${name} ${getRoman(level)} — ${durationSec}s`,"color:lime;font-size:14px");return;}
+  EFFECT_DEFS[name].apply();activeEffects[name]={endTime:Date.now()+dur,timer:setTimeout(()=>{EFFECT_DEFS[name].remove();delete activeEffects[name];drawHud();},dur)};
+  drawHud();console.log(`%c✅ ${name} — ${durationSec}s`,"color:lime;font-size:14px");
+}
+function removeEffect(name){if(activeEffects[name]){clearTimeout(activeEffects[name].timer);EFFECT_DEFS[name]?.remove();delete activeEffects[name];drawHud();}else console.log(`%c⚠️ ${name} not active`,"color:orange");}
+function clearAllEffects(){for(let n in activeEffects){clearTimeout(activeEffects[n].timer);EFFECT_DEFS[n]?.remove();}activeEffects={};resetEffects();drawWorld();console.log("%c✅ All effects cleared","color:lime;font-size:14px");}
+function maxEffects(){["speed","magicShield","magnet","reveal","fireProtection","ghost","lucky","invincible","strength","shield","freeze"].forEach(e=>giveEffect(e,60));console.log("%c✅ All good effects","color:gold;font-size:14px");}
+function fillInventory(){for(let k in itemTarget)itemCollected[k]=itemTarget[k];drawWorld();console.log("%c✅ Inventory filled","color:lime;font-size:14px");}
+function spawnItem(type,count=5){let p=0;for(let dy=-3;dy<=3&&p<count;dy++)for(let dx=-3;dx<=3&&p<count;dx++){let nx=player.x+dx,ny=player.y+dy;if(nx>=0&&ny>=0&&nx<W&&ny<H&&world[ny][nx]==="empty"){world[ny][nx]=type;p++;}}drawWorld();}
+function killMonsters(){monsters=[];stopChase();currentChase=null;resumeBg();drawWorld();}
+function spawnMonster(type="normal"){monsters.push({x:player.x+5,y:player.y+5,type,cd1:0,cd2:0,cd3:0,traps:0});drawWorld();}
+function revealMap(){giveEffect("reveal",999);}
+function teleport(x,y){if(x>=0&&y>=0&&x<W&&y<H){player.x=x;player.y=y;drawWorld();}else console.log("%c❌ Out of bounds","color:red");}
+function noClip(){ghostMode=!ghostMode;if(!activeEffects["ghost"]){activeEffects["ghost"]={endTime:Date.now()+999999,timer:null};EFFECT_DEFS["ghost"].label="Ghost (Admin)";}drawHud();}
+function setVision(n){vision=n;drawWorld();}
+function clearTrees(){for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(world[y][x]==="tree")world[y][x]="empty";drawWorld();}
+function clearLava(){for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(world[y][x]==="lava")world[y][x]="empty";drawWorld();}
+function fillLava(){for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(world[y][x]==="empty")world[y][x]="lava";world[player.y][player.x]="empty";drawWorld();}
+function setCell(x,y,type){if(x>=0&&y>=0&&x<W&&y<H){world[y][x]=type;drawWorld();}else console.log("%c❌ Out of bounds","color:red");}
+function getCell(x,y){if(x>=0&&y>=0&&x<W&&y<H)console.log(`%c📍 (${x},${y}) = ${world[y][x]}`,"color:cyan;font-size:14px");}
+function whereAmI(){console.log(`%c📍 (${player.x},${player.y}) | Level:${stage} | HP:${hp}`,"color:cyan;font-size:14px");}
+function listMonsters(){monsters.forEach((m,i)=>console.log(`%c👹 [${i}] ${m.type} (${m.x},${m.y})`,"color:cyan;font-size:12px"));}
+function setMonsterPos(i,x,y){if(monsters[i]){monsters[i].x=x;monsters[i].y=y;drawWorld();}}
+function freezeAllMonsters(){freezeMonsters=true;console.log("%c🧊 Frozen","color:#0af;font-size:14px");}
+function unfreezeAllMonsters(){freezeMonsters=false;console.log("%c✅ Unfrozen","color:lime;font-size:14px");}
+function setGameSpeed(ms=500){clearInterval(window._gameLoop);window._gameLoop=setInterval(gameLoop,ms);console.log(`%c✅ Speed = ${ms}ms`,"color:lime;font-size:14px");}
+function pauseGame(){paused=true;stopAllMusic();clearInterval(window._gameLoop);window._gameLoop=null;}
+function resumeGame(){paused=false;resumeBg();if(!window._gameLoop)window._gameLoop=setInterval(gameLoop,500);}
+function resetLevel(){
+  /* يعيد اللاعب لأول الـ level من غير تغيير المستوى */
+  hp=100;clearAllEffects();stopAllMusic();currentChase=null;
+  createWorld();placeItems();spawnMonsters();drawWorld();playRandomBg();
+  if(!window._gameLoop)window._gameLoop=setInterval(gameLoop,500);
+  const menu=document.getElementById("pauseMenu");
+  if(menu)menu.style.display="none";
+  paused=false;
+  console.log("%c✅ Level Reset","color:lime;font-size:14px");
+}
+function resetGame(){stage=1;hp=100;clearAllEffects();stopAllMusic();currentChase=null;createWorld();placeItems();spawnMonsters();drawWorld();playRandomBg();if(!window._gameLoop)window._gameLoop=setInterval(gameLoop,500);const menu=document.getElementById("pauseMenu");if(menu)menu.style.display="none";paused=false;}
+function setInvincible(on=true){invincibleMode=on;if(on){activeEffects["invincible"]={endTime:Date.now()+999999,timer:null};EFFECT_DEFS["invincible"].label="Invincible (∞)";}else{delete activeEffects["invincible"];invincibleMode=false;}drawHud();}
+function setShield(on=true){shield=on;if(on)activeEffects["shield"]={endTime:Date.now()+999999,timer:null};else delete activeEffects["shield"];drawHud();}
+function giveGold(n=10){itemCollected["gold"]=(itemCollected["gold"]||0)+n;drawWorld();}
+function giveDiamond(n=5){itemCollected["diamond"]=(itemCollected["diamond"]||0)+n;drawWorld();}
+function saveGame(){
+  localStorage.setItem('survival_save',JSON.stringify({stage,hp,items:itemCollected,savedAt:new Date().toLocaleString()}));
+  ludki("💾 Saved","Game saved!","collect");
+  console.log("%c✅ Saved","color:lime;font-size:14px");
+}
+function loadGame(){
+  let s=localStorage.getItem('survival_save');
+  if(s){
+    let d=JSON.parse(s);stage=d.stage;hp=Math.max(1,d.hp||100);itemCollected=d.items||{};
+    createWorld();placeItems();spawnMonsters();drawWorld();
+    ludki("📂 Loaded",`Level ${stage} loaded!`,"collect");
+    console.log("%c✅ Loaded","color:lime;font-size:14px");
+  }else console.log("%c⚠️ No save","color:orange");
+}
+function gameInfo(){console.log(`%c📊 Level:${stage} HP:${hp} Pos:(${player.x},${player.y}) Vision:${vision} Monsters:${monsters.length} Effects:[${Object.keys(activeEffects).join(",")||"none"}]`,"color:cyan;font-family:monospace;font-size:12px");}
+function help(){console.log(`%c
+🎮 ADMIN COMMANDS — اكتبها في Console (F12)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+reachLevel(n)              → انتقل لمستوى
+setHP(n) | maxHP()         → HP
+godMode() | die()          → حياة
+giveEffect(name,sec,lvl?)  → تأثير (مثال: giveEffect("corruption",10,2))
+clearAllEffects()          → امسح التأثيرات
+maxEffects()               → كل الجيد
+fillInventory()            → اجمع
+spawnItem(type,n)          → ضع عناصر
+killMonsters()             → اقتل الكل
+spawnMonster(type)         → أضف وحش (normal/fire/ice/corruption)
+teleport(x,y)             → انتقل
+noClip()                   → اختراق الأشجار
+revealMap()                → اكشف الخريطة
+setVision(n)               → تحديد الرؤية
+clearTrees/Lava()          → امسح
+setGameSpeed(ms)           → سرعة
+resetGame()                → إعادة
+saveGame() | loadGame()    → حفظ
+gameInfo()                 → معلومات
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,"color:lime;font-family:monospace;font-size:12px");}
+
+console.log("%c🎮 Final Survival Game Ready! — اكتب help()","color:gold;font-size:16px;font-weight:bold");
+
+/* ══ RESPONSIVE RESIZE ══ */
+function handleResize(){
+  calcViewport();
+  applyLayoutMode();
+  drawWorld();
+}
+
+function applyLayoutMode(){
+  const isMobile=window.innerWidth<=768;
+  const hud=document.getElementById("hud");
+  const gameSide=document.getElementById("gameSide");
+  const gameWrapper=document.getElementById("gameWrapper");
+  const mobileCtrl=document.getElementById("mobile-controls");
+  
+  if(isMobile){
+    /* هاتف: HUD أسفل، ماب فوق */
+    if(gameWrapper){gameWrapper.style.flexDirection="column";}
+    if(hud){
+      hud.style.width="100vw";hud.style.height="auto";hud.style.borderRight="none";
+      hud.style.borderTop="2px solid #0f0";hud.style.order="2";hud.style.maxHeight="22vh";
+      hud.style.overflowY="auto";
+    }
+    if(gameSide){gameSide.style.order="1";gameSide.style.width="100%";}
+    if(mobileCtrl){mobileCtrl.style.display="flex";mobileCtrl.style.order="3";}
+  } else {
+    /* ديسكتوب/تابليت: HUD يسار، ماب يمين */
+    if(gameWrapper){gameWrapper.style.flexDirection="row";}
+    if(hud){
+      let hudW=window.innerWidth>1200?190:160;
+      hud.style.width=hudW+"px";hud.style.height="100vh";
+      hud.style.borderRight="2px solid #0f0";hud.style.borderTop="none";
+      hud.style.order="-1";hud.style.maxHeight="100vh";
+    }
+    if(gameSide){gameSide.style.order="0";gameSide.style.width="auto";}
+    if(mobileCtrl){mobileCtrl.style.display="none";}
+  }
+}
+
+window.addEventListener("resize",handleResize);
+/* إظهار أزرار التحكم على أجهزة اللمس */
+if('ontouchstart' in window || navigator.maxTouchPoints>0){
+  const mc=document.getElementById("mobile-controls");
+  if(mc) mc.style.display="flex";
+}
+applyLayoutMode();
+
+/* ══ START ══ */
+setupMobileControls();
+createWorld();placeItems();spawnMonsters();drawWorld();
+/* تشغيل صوت البداية عند أول تفاعل */
+document.addEventListener("touchstart",unlockAudio,{once:true});
 </script>
 </body>
 </html>
