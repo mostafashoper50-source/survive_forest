@@ -12,7 +12,7 @@ body.vfx-bleeding #vfxOverlay{background:radial-gradient(circle,transparent 50%,
 body.vfx-poison   #vfxOverlay{background:radial-gradient(circle,transparent 50%,rgba(0,180,0,0.4) 100%);animation:vfxP 1.2s infinite alternate;}
 body.vfx-burning  #vfxOverlay{background:radial-gradient(circle,transparent 50%,rgba(255,80,0,0.4) 100%);animation:vfxP 0.5s infinite alternate;}
 body.vfx-frost    #vfxOverlay{background:radial-gradient(circle,transparent 55%,rgba(0,150,255,0.4) 100%);animation:vfxP 2s infinite alternate;}
-body.vfx-blind    #vfxOverlay{background:rgba(0, 0, 0, 0.6);}
+body.vfx-blind    #vfxOverlay{background:rgba(0,0,0,0.6);}
 body.vfx-weakness #vfxOverlay{background:radial-gradient(circle,transparent 40%,rgba(100,0,100,0.4) 100%);animation:vfxP 2s infinite alternate;}
 body.vfx-corruption #vfxOverlay{background:radial-gradient(circle,transparent 40%,rgba(100,0,150,0.55) 100%);animation:vfxP 0.7s infinite alternate;}
 @keyframes vfxP{from{opacity:0.5;}to{opacity:1;}}
@@ -184,37 +184,6 @@ body.vfx-hallucination1 #game{animation:halluWave 2.5s ease-in-out infinite;}
 @media (min-width:769px) and (max-width:1200px){
   #hud{width:175px;font-size:11px;}
 }
-/* ديسكتوب */
-@media (min-width: 1201px) {
-  #game {
-    max-width: 95vw;
-    max-height: 60vh;
-  }
-}
-
-/* تابليت */
-@media (min-width: 769px) and (max-width: 1200px) {
-  #game {
-    max-width: 90vw;
-    max-height: 50vh;
-  }
-  #hud {
-    width: 160px;
-  }
-}
-
-/* هاتف */
-@media (max-width: 768px) {
-  #game {
-    max-width: 95vw;
-    max-height: 40vh;
-  }
-  #hud {
-    position: relative;
-    width: 95vw;
-    order: 2;
-  }
-}
 </style>
 </head>
 <body>
@@ -284,36 +253,40 @@ body.vfx-hallucination1 #game{animation:halluWave 2.5s ease-in-out infinite;}
   </div>
 </div>
 
-<script>const W=60, H=120;
-let VIEW_W=60, VIEW_H=36, CELL_SIZE=14;
+<script>
+const W=60, H=120;
+let VIEW_W=60, VIEW_H=30, CELL_SIZE=14;
 
 function calcViewport(){
   const sw=window.innerWidth, sh=window.innerHeight;
-  const gameEl=document.getElementById("game");
-  const hudEl=document.getElementById("hud");
-  
-  // ✅ حساب المساحة المتاحة للخريطة فقط
-  let availW = sw - 220; // مساحة HUD الثابتة
-  let availH = sh - 40;  // هامش صغير
-  
-  // ✅ احسب حجم الخلية بناءً على أكبر عرض ممكن
-  CELL_SIZE = Math.max(10, Math.min(16, Math.floor(availW / 60)));
-  
-  // ✅ احسب عدد الخلايا المرئية
-  VIEW_W = Math.min(60, Math.floor(availW / CELL_SIZE));
-  VIEW_H = Math.min(120, Math.floor(availH / CELL_SIZE));
-  
-  // ✅ طبّق على الـ CSS
-  gameEl.style.gridTemplateColumns = `repeat(${VIEW_W}, ${CELL_SIZE}px)`;
-  gameEl.style.maxWidth = VIEW_W * CELL_SIZE + "px";
-  gameEl.style.maxHeight = VIEW_H * CELL_SIZE + "px";
+  const isMobile=sw<=768;
+  const isTablet=sw>768&&sw<=1200;
+  if(isMobile){
+    /* هاتف: HUD تحت الماب، أزرار تحت الـ HUD */
+    let hudH=Math.min(90,sh*0.12);
+    let ctrlH=Math.min(140,sh*0.22);
+    let availW=sw-8;
+    let availH=sh-hudH-ctrlH-16;
+    CELL_SIZE=Math.max(8,Math.min(13,Math.floor(availW/W)));
+    VIEW_W=Math.min(W,Math.floor(availW/CELL_SIZE));
+    VIEW_H=Math.min(H,Math.floor(availH/CELL_SIZE));
+  } else if(isTablet){
+    /* تابليت: HUD جانبي ضيق */
+    let availW=sw-180-8;
+    let availH=sh-20;
+    CELL_SIZE=Math.max(10,Math.min(14,Math.floor(availW/W)));
+    VIEW_W=Math.min(W,Math.floor(availW/CELL_SIZE));
+    VIEW_H=Math.min(H,Math.floor(availH/CELL_SIZE));
+  } else {
+    /* ديسكتوب/لاب توب */
+    let availW=sw-220;
+    let availH=sh-20;
+    CELL_SIZE=Math.max(12,Math.min(16,Math.floor(Math.min(availW/W,availH/36))));
+    VIEW_W=Math.min(W,Math.floor(availW/CELL_SIZE));
+    VIEW_H=Math.min(H,Math.floor(availH/CELL_SIZE));
+  }
 }
-
-// استدعِ الدالة مرة واحدة عند التحميل
 calcViewport();
-
-// ✅ استدعِ الدالة عند تغيير حجم الشاشة فقط
-window.addEventListener("resize", calcViewport);
 
 const game       = document.getElementById("game");
 const levelEl    = document.getElementById("level");
@@ -329,7 +302,9 @@ const monsterImgs={
   corruption:"./IMAGES/e14e65d09a00866ba47f7c3ae020f6b8.jpg",
   infected:"./IMAGES/3c5e2c1b344c4bebaddc18ec1065d0f9.jpg" /* ← صورة infected monster */
 };
-
+const voidStar={
+  voidImage:"./IMAGES/e5b05c33e8b8ba078bb63ab4ca710a5f.gif"
+}
 /* ══ STATE ══ */
 let world=[], player={x:1,y:1}, monsters=[];
 let stage=1, hp=100, vision=5;
@@ -693,14 +668,6 @@ setInterval(drawHud,500);
 
 /* ══ DRAW ══ */
 function drawWorld(){
-    if(CELL_SIZE !== 14 || VIEW_W !== 60) {
-    VIEW_W = 60;
-    VIEW_H = 36;
-    CELL_SIZE = 14;
-  }
-  
-  game.innerHTML="";
-  game.style.gridTemplateColumns=`repeat(${VIEW_W},${CELL_SIZE}px)`;
   game.innerHTML="";
   game.style.gridTemplateColumns=`repeat(${VIEW_W},${CELL_SIZE}px)`;
   const{cx,cy}=getCamera();
@@ -726,8 +693,8 @@ function drawWorld(){
         if(player.x===x&&player.y===y)div.textContent="🧍";
         else if(cell==="tree")div.textContent="🌲";
         else if(cell==="lava")div.textContent="🔥";
-        else if(cell==="spike")div.textContent="🗡️";
-        else if(cell==="trap"){div.style.background="rgb(0,0,0)";div.textContent="⬛";}
+        else if(cell==="spike"){div.textContent="🗡️";div.style.background="rgb(0,0,0)";}
+        else if(cell==="trap"){div.style.background="rgb(0,0,0)";}
         else if(cell==="med")div.textContent="🧪";
         else if(cell==="medkit")div.textContent="🧰";
         else if(cell==="energy")div.textContent="🥤";
@@ -741,13 +708,13 @@ function drawWorld(){
         else if(cell==="icescorch")div.textContent="💨";
         else if(cell==="fireball")div.textContent="🔥";
         else if(cell==="iceball")div.textContent="❄️";
-        else if(cell==="voidzone")div.style.background=rgb(178, 0, 214);
+        else if(cell==="voidzone")div.style.backgroundColor="rgb(183, 0, 255)";
         else if(cell==="voidstar"){
           if(voidStar&&voidStar.voidIMage){
-            div.style.backgroundImage=URL("./images/e5b05c33e8b8ba078bb63ab4ca710a5f.gif");
+            div.style.backgroundImage=`url("voidStar.voidImage")`;
             div.style.backgroundSize="contain";div.style.backgroundRepeat="no-repeat";
             div.style.backgroundPosition="center";
-          }else div.textContent="⭐";
+          }else div.textContent=voidStar.voidImage;
         }
         else if(itemEmoji[cell])div.textContent=itemEmoji[cell];
 
