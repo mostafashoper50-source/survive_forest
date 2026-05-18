@@ -476,7 +476,7 @@ const sounds={
   infected_layer1:new Audio("./sounds/infected_layer1.m4a"),
   infected_layer2:new Audio("./sounds/infected_layer2.m4a"),
   infected_chase:new Audio("./sounds/infected_chase.m4a"),
-  voidstar_sfx:new Audio("./sounds/voidstar.mp3"),
+  voidstar_sfx:new Audio("./sounds/voidstar.m4a"),
   hallucination_sfx:new Audio("./sounds/hallucination.mp3")
 };
 for(let s in sounds)sounds[s].volume=0.6;
@@ -699,23 +699,27 @@ function drawWorld(){
         else if(cell==="medkit")div.textContent="🧰";
         else if(cell==="energy")div.textContent="🥤";
         else if(cell==="question")div.textContent="❓";
-        else if(cell==="freeze")div.textContent="🧊";
+        else if(cell==="freeze"){div.textContent="🧊";div.style.backgroundColor="rgb(4, 0, 255)";}
         else if(cell==="poison_item")div.textContent="☠️";
         else if(cell==="bandage")div.textContent="🩹";
-        else if(cell==="firezone")div.textContent="🔸";
-        else if(cell==="icezone")div.textContent="🔹";
-        else if(cell==="scorch")div.textContent="💨";
-        else if(cell==="icescorch")div.textContent="💨";
+        else if(cell==="firezone"){div.textContent="🔸";div.style.backgroundColor=" rgba(255, 0, 0, 0.904)"}
+        else if(cell==="icezone"){div.textContent="🔹";div.style.backgroundColor="rgba(0, 162, 255, 0.747)"}
+        else if(cell==="scorch"){div.textContent="💨";div.style.backgroundColor=" rgba(255, 0, 0, 0.904)"}
+        else if(cell==="icescorch"){div.textContent="💨";div.style.backgroundColor="rgba(0, 162, 255, 0.747)"}
         else if(cell==="fireball")div.textContent="🔥";
         else if(cell==="iceball")div.textContent="❄️";
         else if(cell==="voidzone")div.style.backgroundColor="rgb(183, 0, 255)";
-        else if(cell==="voidstar"){
-          if(voidStar&&voidStar.voidIMage){
-            div.style.backgroundImage=`url("voidStar.voidImage")`;
-            div.style.backgroundSize="contain";div.style.backgroundRepeat="no-repeat";
-            div.style.backgroundPosition="center";
-          }else div.textContent=voidStar.voidImage;
-        }
+       // سطر 712-718 (استبدل بهذا):
+else if(cell==="voidstar"){
+  if(voidStar && voidStar.voidImage){
+    div.style.backgroundImage=`url('${voidStar.voidImage}')`;
+    div.style.backgroundSize="contain";
+    div.style.backgroundRepeat="no-repeat";
+    div.style.backgroundPosition="center";
+  } else {
+    div.textContent=voidStar.voidImage;
+  }
+}
         else if(itemEmoji[cell])div.textContent=itemEmoji[cell];
 
         /* رسم العناصر الوهمية */
@@ -729,7 +733,7 @@ function drawWorld(){
               div.style.backgroundSize="contain";div.style.backgroundRepeat="no-repeat";
               div.style.backgroundPosition="center";div.textContent="";
             }else{
-              div.textContent=m.type==="fire"?"🔴":m.type==="ice"?"🔵":m.type==="corruption"?"🟣":m.type==="infected"?"👾":"👹";
+              div.textContent=m.type==="fire"?"🔴":m.type==="ice"?"🔵":m.type==="corruption"?"🟣":m.type==="infected"?monsterImgs.infected:"👹";
             }
           }
         });
